@@ -5,6 +5,9 @@ import {
 } from '@nestjs/common'; import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
+import { UserResponseDto } from './dto/user-response.dto';
+
+import { UserMapper } from './mappers/user.mapper';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -18,8 +21,13 @@ export class UsersService {
   ) { }
 
   /* Read */
-  async findAll(): Promise<User[]> {
-    return this.userRepository.find();
+  async findAll(): Promise<UserResponseDto[]> {
+    const users =
+      await this.userRepository.find();
+
+    return users.map(
+      (user) => UserMapper.toResponse(user),
+    );
   }
 
   async findByEmail(
@@ -34,9 +42,31 @@ export class UsersService {
 
   }
 
+  async findEntityById(
+  id: string,
+): Promise<User> {
+
+  const user =
+    await this.userRepository.findOne({
+      where: {
+        id,
+      },
+    });
+
+
+  if (!user) {
+    throw new NotFoundException(
+      'User not found',
+    );
+  }
+
+
+  return user;
+}
+
   async findById(
     id: string,
-  ): Promise<User> {
+  ): Promise<UserResponseDto> {
 
     const user =
       await this.userRepository.findOne({
@@ -53,13 +83,15 @@ export class UsersService {
     }
 
 
-    return user;
+    return UserMapper.toResponse(
+      user,
+    );
   }
 
   /* Create */
   async create(
     createUserDto: CreateUserDto,
-  ): Promise<User> {
+  ): Promise<UserResponseDto> {
 
     const existingUser =
       await this.findByEmail(
@@ -73,28 +105,43 @@ export class UsersService {
     }
 
     const user =
-      this.userRepository.create(createUserDto);
+      this.userRepository.create(
+        createUserDto,
+      );
 
-    return this.userRepository.save(user);
+    const savedUser =
+      await this.userRepository.save(
+        user,
+      );
+
+    return UserMapper.toResponse(
+      savedUser,
+    );
   }
   /* Updates */
   async update(
-    id: string,
-    updateUserDto: UpdateUserDto,
-  ): Promise<User> {
+  id: string,
+  updateUserDto: UpdateUserDto,
+): Promise<UserResponseDto> {
 
-    const user =
-      await this.findById(id);
-
-
-    Object.assign(
-      user,
-      updateUserDto,
-    );
+  const user =
+    await this.findEntityById(id);
 
 
-    return this.userRepository.save(user);
-  }
+  Object.assign(
+    user,
+    updateUserDto,
+  );
+
+
+  const updatedUser =
+    await this.userRepository.save(user);
+
+
+  return UserMapper.toResponse(
+    updatedUser,
+  );
+}
 }
 
 
