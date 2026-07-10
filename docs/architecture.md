@@ -6,96 +6,254 @@ The Choloo Jaai backend is built using **NestJS**, following a modular architect
 
 The application uses:
 
-- NestJS
-- TypeScript
-- TypeORM
-- PostgreSQL
-- Redis
-- Docker
+* NestJS
+* TypeScript
+* TypeORM
+* PostgreSQL
+* Redis
+* Docker
 
 ---
 
-## Project Structure
+# Project Structure
 
 ```
 src/
-├── common/          # Shared decorators, guards, filters, interceptors, utilities
-├── config/          # Application configuration
-├── database/        # Database module and TypeORM configuration
-├── modules/         # Business modules
-│   └── users/
+├── common/              # Shared decorators, guards, filters, interceptors, utilities
+├── config/              # Application configuration
+├── database/            # Database module and TypeORM configuration
+├── modules/             # Business modules
+│   ├── users/           # User management module
+│   └── auth/            # Authentication module
 ├── app.module.ts
 └── main.ts
 ```
 
 ---
 
-## Architecture Layers
+# Architecture Layers
 
-Each business module follows the same layered architecture.
+Each business module follows a layered architecture.
 
 ```
 HTTP Request
-      │
+      |
       ▼
 Controller
-      │
+      |
       ▼
 Service
-      │
+      |
       ▼
-TypeORM Repository
-      │
+Repository
+      |
       ▼
-PostgreSQL
+Database
 ```
-
-### Controller
-
-Responsible for:
-
-- Receiving HTTP requests
-- Validating input
-- Returning HTTP responses
-
-### Service
-
-Responsible for:
-
-- Business logic
-- Data validation
-- Calling repositories
-
-### Repository
-
-Responsible for:
-
-- Database operations
-- Query execution through TypeORM
 
 ---
 
-## Current Implemented Module
+# Layer Responsibilities
 
-### Users Module
+## Controller
+
+Responsible for:
+
+* Receiving HTTP requests
+* Request routing
+* DTO validation handling
+* Returning HTTP responses
+
+---
+
+## Service
+
+Responsible for:
+
+* Business logic
+* Data processing
+* Validation rules
+* Coordinating repositories
+* Handling module operations
+
+---
+
+## Repository
+
+Responsible for:
+
+* Database operations
+* Entity persistence
+* Query execution through TypeORM
+
+---
+
+## DTO Layer
+
+DTOs define the structure of incoming and outgoing data.
+
+Responsibilities:
+
+* Validate incoming requests
+* Prevent invalid data
+* Control exposed API fields
+
+---
+
+## Mapper Layer
+
+The mapper layer converts database entities into API response objects.
+
+Purpose:
+
+* Prevent exposing sensitive fields
+* Separate database models from API responses
+
+Example:
+
+```
+User Entity
+     |
+     ▼
+UserMapper
+     |
+     ▼
+UserResponseDto
+```
+
+---
+
+# Current Implemented Modules
+
+## Database Module
+
+Implemented:
+
+* PostgreSQL connection
+* TypeORM configuration
+* Environment-based database configuration
+
+---
+
+# Users Module
+
+The Users module manages user data operations.
 
 Implemented features:
 
-- Create User
-- Get All Users
-- Get User by ID
-- Update User
-- Duplicate Email Validation
+* User entity
+* Repository pattern
+* DTO validation
+* Create user
+* Get all users
+* Get user by ID
+* Update user
+* Duplicate email validation
+* HTTP exception handling
+* UserResponseDto
+* Entity-to-response mapping
+* Password hash protection
+
+Current flow:
+
+```
+Controller
+     |
+     ▼
+UsersService
+     |
+     ▼
+UserRepository
+     |
+     ▼
+PostgreSQL users table
+```
 
 ---
 
-## Development Principles
+# Authentication Module
+
+The Auth module handles user authentication workflows.
+
+Implemented features:
+
+* Separate authentication module
+* User registration
+* Register DTO validation
+* bcrypt password hashing
+* Integration with UsersService
+* Secure user response handling
+
+Current registration flow:
+
+```
+Client
+   |
+   ▼
+AuthController
+   |
+   ▼
+AuthService
+   |
+   ▼
+bcrypt password hashing
+   |
+   ▼
+UsersService
+   |
+   ▼
+PostgreSQL
+```
+
+Planned:
+
+* Login authentication
+* JWT access tokens
+* Database-backed refresh tokens
+* Authentication guards
+* Role-based authorization
+
+---
+
+# API Architecture
+
+The backend uses versioned APIs.
+
+Current API prefix:
+
+```
+/v1
+```
+
+Example:
+
+```
+GET     /v1/users
+GET     /v1/users/:id
+PATCH   /v1/users/:id
+POST    /v1/auth/register
+```
+
+---
+
+# Development Principles
 
 The backend follows:
 
-- Modular Architecture
-- Separation of Concerns
-- Repository Pattern
-- DTO Validation
-- Dependency Injection
-- Environment-based Configuration
+* Modular Architecture
+* Separation of Concerns
+* Repository Pattern
+* DTO-based Validation
+* Entity-Response Separation
+* Dependency Injection
+* Environment-based Configuration
+* Secure Password Handling
+
+```
+
+---
+
+# Last Updated
+
+2026-07-11
+```

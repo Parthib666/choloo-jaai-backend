@@ -1,15 +1,18 @@
 # Development Guide
+
 ## Prerequisites
 
 Before running the backend, install:
 
-- Node.js (LTS)
-- Docker Desktop
-- Git
-- PostgreSQL (optional when using Docker)
-- Postman (API testing)
+* Node.js (LTS)
+* Docker Desktop
+* Git
+* PostgreSQL (optional when using Docker)
+* Postman (API testing)
 
-## Development Workflow
+---
+
+# Development Workflow
 
 Every feature is developed using the following workflow:
 
@@ -22,119 +25,206 @@ Every feature is developed using the following workflow:
 
 ---
 
-## Git Workflow
+# Git Workflow
 
 Backend changes follow this process:
 
-```
+```text
 Feature Implementation
-        │
+        |
         ▼
 git add .
-        │
+        |
         ▼
 git commit
-        │
+        |
         ▼
 git push
 ```
 
-Documentation is maintained alongside the code to ensure the backend and documentation repositories remain synchronized.
+Documentation is maintained alongside the code to ensure the backend implementation and documentation remain synchronized.
 
 ---
-## Running the Backend
 
-Start the infrastructure:
+# Running the Backend
+
+## Start Infrastructure
 
 ```bash
 docker compose up -d
 ```
 
-Install dependencies:
+## Install Dependencies
 
 ```bash
 npm install
 ```
 
-Start the development server:
+## Start Development Server
 
 ```bash
 npm run start:dev
 ```
 
-The backend will be available at:
+Backend will be available at:
 
-```
+```text
 http://localhost:3000
 ```
+
+API prefix:
+
+```text
+http://localhost:3000/v1
+```
+
+---
+
 # Current Backend Progress
 
 ## Infrastructure
 
 Completed:
 
-- Docker
-- PostgreSQL 16
-- Redis 7
-- TypeORM
-- Environment configuration
+* Docker
+* PostgreSQL 16
+* Redis 7
+* TypeORM
+* Environment-based configuration
 
 ---
 
-## Completed Modules
+# Completed Modules
 
-### Database Module
-
-Completed:
-
-- PostgreSQL connection
-- TypeORM configuration
-- Environment-based configuration
-
-### Users Module
+## Database Module
 
 Completed:
 
-- User entity
-- Repository pattern
-- DTO validation
-- Create user
-- Get all users
-- Get user by ID
-- Update user
-- Duplicate email validation
-- HTTP exception handling
+* PostgreSQL connection
+* TypeORM configuration
+* Environment configuration
+* Entity-based database design
 
 ---
 
-## API Testing
+## Users Module
+
+Completed:
+
+* User entity
+* Repository pattern
+* DTO validation
+* User retrieval
+* User update
+* Email uniqueness validation
+* HTTP exception handling
+* User response DTO
+* Entity-to-response mapping
+* Password hash protection through response mapping
+
+---
+
+## Authentication Module
+
+Completed:
+
+* Separate authentication module
+* User registration flow
+* Register DTO validation
+* bcrypt password hashing
+* Integration with Users service
+* Password hash storage
+* Protected user response
+
+Current registration flow:
+
+```text
+Client
+  |
+  ▼
+Auth Controller
+  |
+  ▼
+Auth Service
+  |
+  ▼
+bcrypt password hashing
+  |
+  ▼
+Users Service
+  |
+  ▼
+PostgreSQL users table
+```
+
+---
+
+# API Testing
 
 Testing tool:
 
-- Postman
+* Postman
 
 Verified endpoints:
 
-- GET /v1/users
-- GET /v1/users/:id
-- POST /v1/users
-- PATCH /v1/users/:id
+* GET /v1/users
+* GET /v1/users/:id
+* PATCH /v1/users/:id
+* POST /v1/auth/register
 
 Verified features:
 
-- User creation
-- User retrieval
-- User update
-- DTO validation
-- Duplicate email handling
-- PostgreSQL persistence
+* User retrieval
+* User update
+* User registration
+* DTO validation
+* Duplicate email handling
+* Password hashing
+* Password hash exclusion from API response
+* PostgreSQL persistence
 
 ---
 
-## Next Steps
+# Current Architecture Principles
 
-- Complete DELETE /users/:id
-- Implement password hashing (bcrypt)
-- Build Authentication module
-- JWT authentication
-- Role-Based Access Control (RBAC)
+The backend follows:
+
+* Modular architecture
+* Separation of concerns
+* Repository pattern
+* DTO-based validation
+* Environment-based configuration
+* Service-layer business logic
+* Secure password handling
+
+---
+
+# Next Steps
+
+Authentication:
+
+* Implement login endpoint
+* Generate JWT access tokens
+* Implement database-backed refresh tokens
+* Create JWT authentication strategy
+* Implement authentication guards
+
+Authorization:
+
+* Implement Role-Based Access Control (RBAC)
+* Add role guards
+* Protect restricted routes
+
+API Improvements:
+
+* Add Swagger documentation
+* Add pagination
+* Add filtering
+* Add sorting
+* Add input sanitization
+
+---
+
+# Last Updated
+
+2026-07-11
