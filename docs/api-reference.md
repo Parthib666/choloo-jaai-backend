@@ -1,25 +1,53 @@
 # Users API
+## Available Endpoints
 
+| Method | Endpoint | Description |
+|---------|----------|-------------|
+| GET | /v1/users | Get all users |
+| GET | /v1/users/:id | Get a user by ID |
+| POST | /v1/users | Create a user |
+| PATCH | /v1/users/:id | Update a user |
 
-Base URL:
+## Base URL
 
+Development
 
+```
 http://localhost:3000
+```
 
+API Version
 
+```
+v1
+```
+
+Current API prefix
+
+```
+http://localhost:3000/v1
+```
+## Request Headers
+
+```
+Content-Type: application/json
+```
 
 ---
 
-# GET All Users
+## GET /v1/users
 
-Endpoint:
+Returns all users.
 
+### Response
 
-GET /users
+Status:
 
+```
+200 OK
+```
 
-
-Response:
+Example:
 
 ```json
 [
@@ -30,14 +58,61 @@ Response:
     "email": "parthib@test.com"
   }
 ]
-POST Create User
+```
 
-Endpoint:
+---
 
-POST /users
+## GET /v1/users/:id
 
-Request:
+Returns a single user.
 
+### Example
+
+```
+GET /v1/users/be9d1ad9-760d-4e8b-ab86-f87b17f2ad49
+```
+
+### Success
+
+```
+200 OK
+```
+
+```json
+{
+  "id": "be9d1ad9-760d-4e8b-ab86-f87b17f2ad49",
+  "firstName": "Parthib",
+  "lastName": "Datta",
+  "email": "parthib@test.com",
+  "phone": "01888888888",
+  "role": "CUSTOMER",
+  "status": "ACTIVE"
+}
+```
+
+### Not Found
+
+```
+404 Not Found
+```
+
+```json
+{
+  "message": "User not found",
+  "error": "Not Found",
+  "statusCode": 404
+}
+```
+
+---
+
+## POST /v1/users
+
+Creates a new user.
+
+### Request
+
+```json
 {
   "firstName": "Parthib",
   "lastName": "Datta",
@@ -45,72 +120,85 @@ Request:
   "phone": "01700000000",
   "passwordHash": "temporary_hash"
 }
+```
 
-Success:
+### Success
 
+```
 201 Created
+```
 
-Duplicate Email:
+### Duplicate Email
 
+```
 409 Conflict
+```
 
-Response:
-
+```json
 {
   "message": "Email already exists",
   "error": "Conflict",
   "statusCode": 409
 }
+```
 
 ---
 
-# 4. Update `development-guide.md`
+## PATCH /v1/users/:id
 
-Append:
+Updates an existing user.
 
-```md
-# Current Development Workflow
+### Example
 
-For each feature:
+```
+PATCH /users/be9d1ad9-760d-4e8b-ab86-f87b17f2ad49
+```
 
-1. Plan architecture
-2. Implement code
-3. Test with Postman
-4. Update documentation
-5. Commit changes
-6. Push to GitHub
+### Request
 
+```json
+{
+  "phone": "01888888888"
+}
+```
 
-## API Testing
+### Success
 
-Tool:
+```
+200 OK
+```
 
+Returns the updated user.
 
-Postman
+### Not Found
 
+```
+404 Not Found
+```
 
+```json
+{
+  "message": "User not found",
+  "error": "Not Found",
+  "statusCode": 404
+}
+```
+## Known Limitations
 
-Verified:
+Current implementation is intended for development only.
 
-- GET users endpoint
-- POST users endpoint
-- Validation errors
-- Duplicate email handling
+Not yet implemented:
 
+- Password hashing
+- Authentication
+- Authorization
+- Input sanitization
+- Pagination
+- Filtering
+- Sorting
+- Swagger documentation
+---
+---
+## Last Updated
 
-## Git Workflow
-
-Backend changes:
-
-
-feature implementation
-|
-↓
-git commit
-|
-↓
-git push
-
-
-
-Documentation is maintained together with code changes.
+2026-07-10

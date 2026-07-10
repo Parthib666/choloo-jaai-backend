@@ -1,10 +1,13 @@
-import { ConflictException, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common'; import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-
 
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -12,44 +15,86 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-  ) {}
+  ) { }
 
-
+  /* Read */
   async findAll(): Promise<User[]> {
     return this.userRepository.find();
   }
 
   async findByEmail(
-  email: string,
-): Promise<User | null> {
+    email: string,
+  ): Promise<User | null> {
 
-  return this.userRepository.findOne({
-    where: {
-      email,
-    },
-  });
+    return this.userRepository.findOne({
+      where: {
+        email,
+      },
+    });
 
-}
-
-
-  async create(
-  createUserDto: CreateUserDto,
-): Promise<User> {
-
-  const existingUser =
-    await this.findByEmail(
-      createUserDto.email,
-    );
-
-  if (existingUser) {
-   throw new ConflictException(
-  'Email already exists',
-);
   }
 
-  const user =
-    this.userRepository.create(createUserDto);
+  async findById(
+    id: string,
+  ): Promise<User> {
 
-  return this.userRepository.save(user);
+    const user =
+      await this.userRepository.findOne({
+        where: {
+          id,
+        },
+      });
+
+
+    if (!user) {
+      throw new NotFoundException(
+        'User not found',
+      );
+    }
+
+
+    return user;
+  }
+
+  /* Create */
+  async create(
+    createUserDto: CreateUserDto,
+  ): Promise<User> {
+
+    const existingUser =
+      await this.findByEmail(
+        createUserDto.email,
+      );
+
+    if (existingUser) {
+      throw new ConflictException(
+        'Email already exists',
+      );
+    }
+
+    const user =
+      this.userRepository.create(createUserDto);
+
+    return this.userRepository.save(user);
+  }
+  /* Updates */
+  async update(
+    id: string,
+    updateUserDto: UpdateUserDto,
+  ): Promise<User> {
+
+    const user =
+      await this.findById(id);
+
+
+    Object.assign(
+      user,
+      updateUserDto,
+    );
+
+
+    return this.userRepository.save(user);
+  }
 }
-}
+
+

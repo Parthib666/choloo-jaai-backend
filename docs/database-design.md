@@ -1,52 +1,79 @@
-# Users Table
+# Database Design
 
-## Purpose
+## Database
 
-Stores all platform users.
+The backend uses **PostgreSQL 16** as the primary relational database.
 
-Users include:
+ORM:
 
-- Public customers
-- Corporate clients
-- Event managers
+- TypeORM
+
+---
+
+# Current Tables
+
+## users
+
+### Purpose
+
+Stores all platform users, including:
+
+- Customers
+- Corporate Clients
+- Event Managers
 - Administrators
 
+---
 
-## Current Schema
-
-Table:
-
-
-users
-
-
-
-Columns:
+## Schema
 
 | Column | Type | Constraint |
-|-|-|-|
+|---------|------|------------|
 | id | UUID | Primary Key |
 | firstName | varchar | Required |
 | lastName | varchar | Required |
 | email | varchar | Unique |
-| phone | varchar | Optional |
+| phone | varchar | Nullable |
 | passwordHash | varchar | Required |
 | role | enum | Default CUSTOMER |
 | status | enum | Default ACTIVE |
-| createdAt | timestamp | Auto |
-| updatedAt | timestamp | Auto |
+| createdAt | timestamp | Auto-generated |
+| updatedAt | timestamp | Auto-generated |
 
+---
+
+## Enums
+
+### UserRole
+
+- CUSTOMER
+- EVENT_MANAGER
+- CORPORATE_CLIENT
+- ADMIN
+
+### UserStatus
+
+- ACTIVE
+- INACTIVE
+- SUSPENDED
+
+---
 
 ## Constraints
 
 ### Email
 
-Unique constraint prevents multiple accounts using the same email.
+The **email** column has a unique constraint to prevent duplicate accounts.
 
-Example:
+---
 
+## Current Relationships
 
-parthib@test.com
+At the current stage of development, the **users** table has no foreign key relationships.
 
+Relationships will be introduced when implementing:
 
-cannot exist twice.
+- Events
+- Bookings
+- Tickets
+- Payments

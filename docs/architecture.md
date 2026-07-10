@@ -1,66 +1,101 @@
-# Current Backend Implementation Status
+# Backend Architecture
 
-## Completed Modules
+## Overview
 
-### Users Module
+The Choloo Jaai backend is built using **NestJS**, following a modular architecture that promotes scalability, maintainability, and separation of concerns.
 
-The Users module is the first implemented business domain.
+The application uses:
 
-Architecture:
-
-
-UsersController
-|
-|
-UsersService
-|
-|
-TypeORM Repository
-|
-|
-PostgreSQL users table
-
-
-Implemented responsibilities:
-
-- User creation
-- User retrieval
-- Duplicate email validation
-- DTO validation
-- Database persistence
-
-
-## Current Request Flow
-
-Example:
-
-POST /users
-
-
-Client
-|
-| JSON Request
-↓
-UsersController
-|
-↓
-UsersService
-|
-↓
-UserRepository
-|
-↓
-PostgreSQL
-
+- NestJS
+- TypeScript
+- TypeORM
+- PostgreSQL
+- Redis
+- Docker
 
 ---
 
-# Development Principles Followed
+## Project Structure
+
+```
+src/
+├── common/          # Shared decorators, guards, filters, interceptors, utilities
+├── config/          # Application configuration
+├── database/        # Database module and TypeORM configuration
+├── modules/         # Business modules
+│   └── users/
+├── app.module.ts
+└── main.ts
+```
+
+---
+
+## Architecture Layers
+
+Each business module follows the same layered architecture.
+
+```
+HTTP Request
+      │
+      ▼
+Controller
+      │
+      ▼
+Service
+      │
+      ▼
+TypeORM Repository
+      │
+      ▼
+PostgreSQL
+```
+
+### Controller
+
+Responsible for:
+
+- Receiving HTTP requests
+- Validating input
+- Returning HTTP responses
+
+### Service
+
+Responsible for:
+
+- Business logic
+- Data validation
+- Calling repositories
+
+### Repository
+
+Responsible for:
+
+- Database operations
+- Query execution through TypeORM
+
+---
+
+## Current Implemented Module
+
+### Users Module
+
+Implemented features:
+
+- Create User
+- Get All Users
+- Get User by ID
+- Update User
+- Duplicate Email Validation
+
+---
+
+## Development Principles
 
 The backend follows:
 
-- Modular architecture
-- Separation of concerns
-- Repository pattern
-- DTO-based validation
-- Environment-based configuration
+- Modular Architecture
+- Separation of Concerns
+- Repository Pattern
+- DTO Validation
+- Dependency Injection
+- Environment-based Configuration
