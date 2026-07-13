@@ -2,165 +2,185 @@
 
 ## Status
 
-**In Progress**
+**Partially Implemented**
 
-The authentication module has been created.
-
-Currently implemented:
-
-* User registration
-* Password hashing using bcrypt
-* Integration with Users module
-* Secure password storage
-
-Pending:
-
-* Login authentication
-* JWT access tokens
-* Database-backed refresh tokens
-* Authorization system
+The backend now supports secure user registration and JWT-based authentication. Additional security features such as refresh tokens and role-based authorization are planned for future development.
 
 ---
 
 # Authentication Strategy
 
-The backend will use:
+The backend uses:
 
 * JWT (JSON Web Tokens)
 * bcrypt for password hashing
-* Access Tokens
-* Database-backed Refresh Tokens
-* Role-Based Access Control (RBAC)
+* Passport.js with JWT Strategy
+* NestJS Guards for route protection
+* Environment-based secret management
 
 ---
 
 # Current Authentication Flow
 
-## User Registration
-
-```
+```text
 User Registration
-        |
-        ▼
-Auth Controller
-        |
-        ▼
-Auth Service
-        |
+        │
         ▼
 Validate Register DTO
-        |
+        │
         ▼
-Hash Password using bcrypt
-        |
-        ▼
-Users Service
-        |
+Hash Password (bcrypt)
+        │
         ▼
 Store User in PostgreSQL
+        │
+        ▼
+Return UserResponseDto
 ```
 
 ---
 
-# Planned Login Flow
-
-```
+```text
 User Login
-     |
-     ▼
-Email + Password
-     |
-     ▼
-Find User
-     |
-     ▼
-bcrypt Password Verification
-     |
-     ▼
+        │
+        ▼
+Validate Login DTO
+        │
+        ▼
+Find User by Email
+        │
+        ▼
+Compare Password (bcrypt)
+        │
+        ▼
 Generate JWT Access Token
-     |
-     ▼
-Generate Refresh Token
-     |
-     ▼
-Authenticated Requests
+        │
+        ▼
+Return Access Token + User
 ```
 
 ---
 
-# User Roles
-
-| Role          | Description                 |
-| ------------- | --------------------------- |
-| CUSTOMER      | Public platform customer    |
-| CLIENT        | Corporate event client      |
-| EVENT_MANAGER | Event organizer and manager |
-| ADMIN         | System administrator        |
-
----
-
-# Available Endpoints
-
-| Method | Endpoint          | Purpose                | Status      |
-| ------ | ----------------- | ---------------------- | ----------- |
-| POST   | /v1/auth/register | Register a new account | ✅ Completed |
-| POST   | /v1/auth/login    | Authenticate user      | ⏳ Planned   |
-| POST   | /v1/auth/refresh  | Refresh access token   | ⏳ Planned   |
-| POST   | /v1/auth/logout   | Logout user            | ⏳ Planned   |
-
----
-
-# Security Design
-
-The authentication system will provide:
-
-* Secure password hashing using bcrypt
-* Password hashes never exposed through API responses
-* JWT-based authentication
-* Database-backed refresh token management
-* Protected routes using NestJS Guards
-* Role-based authorization
-* Environment-based secret management
+```text
+Authenticated Request
+        │
+Authorization: Bearer <JWT>
+        │
+        ▼
+JwtAuthGuard
+        │
+        ▼
+JwtStrategy
+        │
+Verify JWT Signature
+        │
+Check Token Expiration
+        │
+        ▼
+Attach User to Request
+        │
+        ▼
+Protected Controller
+```
 
 ---
 
-# Database-Backed Refresh Tokens
+# Implemented Endpoints
 
-Refresh tokens will be stored in the database.
-
-Purpose:
-
-* Allow token revocation
-* Support logout from all devices
-* Track active sessions
-* Improve security control
-
-Implementation planned:
-
-* Refresh token entity
-* Token expiration handling
-* Token rotation
-* Logout invalidation
+| Method | Endpoint          | Purpose                | Status        |
+| ------ | ----------------- | ---------------------- | ------------- |
+| POST   | /v1/auth/register | Register a new account | ✅ Implemented |
+| POST   | /v1/auth/login    | Authenticate user      | ✅ Implemented |
 
 ---
 
-# Implementation Status
+# Protected Routes
 
-| Feature                          | Status      |
-| -------------------------------- | ----------- |
-| Separate Auth Module             | ✅ Completed |
-| Register DTO                     | ✅ Completed |
-| User Registration                | ✅ Completed |
-| Password Hashing (bcrypt)        | ✅ Completed |
-| Password Protection in Responses | ✅ Completed |
-| JWT Authentication               | ⏳ Planned   |
-| Access Tokens                    | ⏳ Planned   |
-| Database-backed Refresh Tokens   | ⏳ Planned   |
-| Authorization Guards             | ⏳ Planned   |
-| Role-Based Access Control        | ⏳ Planned   |
+The backend currently supports protecting endpoints using:
+
+```ts
+@UseGuards(JwtAuthGuard)
+```
+
+Requests to protected endpoints require:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+---
+
+# JWT Payload
+
+Generated access tokens contain:
+
+| Field | Description          |
+| ----- | -------------------- |
+| sub   | User ID              |
+| email | User email           |
+| role  | User role            |
+| iat   | Issued at timestamp  |
+| exp   | Expiration timestamp |
+
+---
+
+# Security Features
+
+Implemented:
+
+* Password hashing using bcrypt
+* Password verification using bcrypt.compare()
+* JWT access token generation
+* JWT signature verification
+* Token expiration validation
+* Route protection using JwtAuthGuard
+* JWT Strategy with Passport
+* Environment-based JWT configuration
+* Password hashes never returned through the API
+* UserResponseDto prevents sensitive data exposure
+
+---
+
+# Planned Features
+
+| Feature                          | Status    |
+| -------------------------------- | --------- |
+| Refresh Tokens                   | ⏳ Planned |
+| Database-backed Refresh Tokens   | ⏳ Planned |
+| Logout Endpoint                  | ⏳ Planned |
+| Refresh Token Rotation           | ⏳ Planned |
+| Role-Based Access Control (RBAC) | ⏳ Planned |
+| Roles Guard                      | ⏳ Planned |
+| Permissions System               | ⏳ Planned |
+
+---
+
+# Authentication Configuration
+
+JWT configuration is loaded from environment variables.
+
+Example:
+
+```env
+JWT_SECRET=your-secret-key
+JWT_EXPIRES_IN=15m
+REFRESH_TOKEN_EXPIRES_IN=7d
+```
+
+---
+
+# Current Technology Stack
+
+* NestJS Authentication
+* Passport.js
+* passport-jwt
+* @nestjs/jwt
+* bcrypt
+* PostgreSQL
+* TypeORM
 
 ---
 
 # Last Updated
 
-2026-07-11
+2026-07-14

@@ -128,13 +128,13 @@ Completed:
 
 Completed:
 
-* Separate authentication module
-* User registration flow
-* Register DTO validation
-* bcrypt password hashing
-* Integration with Users service
-* Password hash storage
-* Protected user response
+- User registration
+- Password hashing (bcrypt)
+- User login
+- JWT authentication
+- Passport JWT Strategy
+- JWT route protection
+- Environment-based JWT configuration
 
 Current registration flow:
 
@@ -167,22 +167,16 @@ Testing tool:
 
 Verified endpoints:
 
-* GET /v1/users
-* GET /v1/users/:id
-* PATCH /v1/users/:id
-* POST /v1/auth/register
+- POST /v1/auth/register
+- POST /v1/auth/login
 
 Verified features:
 
-* User retrieval
-* User update
-* User registration
-* DTO validation
-* Duplicate email handling
-* Password hashing
-* Password hash exclusion from API response
-* PostgreSQL persistence
-
+- Password hashing
+- Password verification
+- JWT generation
+- Protected endpoints
+- Bearer authentication
 ---
 
 # Current Architecture Principles

@@ -4,179 +4,87 @@
 
 Development
 
-```text
+``` text
 http://localhost:3000
 ```
 
-API Version
+## API Version
 
-```text
+``` text
 v1
 ```
 
-Current API Prefix
+## Current API Prefix
 
-```text
+``` text
 http://localhost:3000/v1
 ```
 
 ## Request Headers
 
-```http
+``` http
 Content-Type: application/json
 ```
 
----
+------------------------------------------------------------------------
 
-# Users API
+# Authentication
+
+The API uses JWT Bearer authentication for protected endpoints.
+
+## Authentication Flow
+
+``` text
+Register
+   │
+   ▼
+POST /v1/auth/register
+   │
+   ▼
+Create Account
+   │
+   ▼
+POST /v1/auth/login
+   │
+   ▼
+Receive JWT Access Token
+   │
+   ▼
+Authorization: Bearer <access_token>
+   │
+   ▼
+Access Protected Endpoints
+```
+
+## Authorization Header
+
+``` http
+Authorization: Bearer <access_token>
+```
+
+Public endpoints:
+
+  Method   Endpoint
+  -------- -------------------
+  POST     /v1/auth/register
+  POST     /v1/auth/login
+
+Protected endpoints:
+
+  Method   Endpoint
+  -------- -----------
+  GET      /v1/users
+
+------------------------------------------------------------------------
+
+# Authentication API
 
 ## Available Endpoints
 
-| Method | Endpoint      | Description      |
-| ------ | ------------- | ---------------- |
-| GET    | /v1/users     | Get all users    |
-| GET    | /v1/users/:id | Get a user by ID |
-| PATCH  | /v1/users/:id | Update a user    |
-
----
-
-## GET /v1/users
-
-Returns all users.
-
-### Response
-
-Status:
-
-```text
-200 OK
-```
-
-Example:
-
-```json
-[
-  {
-    "id": "uuid",
-    "firstName": "Parthib",
-    "lastName": "Datta",
-    "email": "parthib@test.com",
-    "phone": "01700000000",
-    "role": "CUSTOMER",
-    "status": "ACTIVE"
-  }
-]
-```
-
----
-
-## GET /v1/users/:id
-
-Returns a single user.
-
-### Example
-
-```http
-GET /v1/users/be9d1ad9-760d-4e8b-ab86-f87b17f2ad49
-```
-
-### Success
-
-```text
-200 OK
-```
-
-Response:
-
-```json
-{
-  "id": "be9d1ad9-760d-4e8b-ab86-f87b17f2ad49",
-  "firstName": "Parthib",
-  "lastName": "Datta",
-  "email": "parthib@test.com",
-  "phone": "01888888888",
-  "role": "CUSTOMER",
-  "status": "ACTIVE",
-  "createdAt": "2026-07-10T16:36:11.992Z",
-  "updatedAt": "2026-07-10T16:36:11.992Z"
-}
-```
-
-### Not Found
-
-```text
-404 Not Found
-```
-
-Response:
-
-```json
-{
-  "message": "User not found",
-  "error": "Not Found",
-  "statusCode": 404
-}
-```
-
----
-
-## PATCH /v1/users/:id
-
-Updates an existing user.
-
-### Example
-
-```http
-PATCH /v1/users/be9d1ad9-760d-4e8b-ab86-f87b17f2ad49
-```
-
-### Request
-
-```json
-{
-  "phone": "01888888888"
-}
-```
-
-### Success
-
-```text
-200 OK
-```
-
-Response:
-
-```json
-{
-  "id": "be9d1ad9-760d-4e8b-ab86-f87b17f2ad49",
-  "firstName": "Parthib",
-  "lastName": "Datta",
-  "email": "parthib@test.com",
-  "phone": "01888888888",
-  "role": "CUSTOMER",
-  "status": "ACTIVE"
-}
-```
-
-### Not Found
-
-```text
-404 Not Found
-```
-
-Response:
-
-```json
-{
-  "message": "User not found",
-  "error": "Not Found",
-  "statusCode": 404
-}
-```
-
----
-
-# Authentication API
+  Method   Endpoint            Description
+  -------- ------------------- ------------------------
+  POST     /v1/auth/register   Register a new account
+  POST     /v1/auth/login      Authenticate a user
 
 ## POST /v1/auth/register
 
@@ -184,7 +92,7 @@ Creates a new user account.
 
 ### Request
 
-```json
+``` json
 {
   "firstName": "Parthib",
   "lastName": "Datta",
@@ -196,13 +104,9 @@ Creates a new user account.
 
 ### Success
 
-```text
-201 Created
-```
+`201 Created`
 
-Response:
-
-```json
+``` json
 {
   "id": "uuid",
   "firstName": "Parthib",
@@ -218,13 +122,9 @@ Response:
 
 ### Duplicate Email
 
-```text
-409 Conflict
-```
+`409 Conflict`
 
-Response:
-
-```json
+``` json
 {
   "message": "Email already exists",
   "error": "Conflict",
@@ -232,32 +132,112 @@ Response:
 }
 ```
 
-### Notes
+## POST /v1/auth/login
 
-* Passwords are hashed using bcrypt.
-* Plain passwords are never stored.
-* Password hashes are never returned through the API.
+Authenticates an existing user.
 
----
+### Request
+
+``` json
+{
+  "email": "parthib@test.com",
+  "password": "MyPassword123!"
+}
+```
+
+### Success
+
+`200 OK`
+
+``` json
+{
+  "accessToken": "<jwt_access_token>",
+  "user": {
+    "id": "uuid",
+    "firstName": "Parthib",
+    "lastName": "Datta",
+    "email": "parthib@test.com",
+    "phone": "01700000000",
+    "role": "CUSTOMER",
+    "status": "ACTIVE",
+    "createdAt": "2026-07-10T16:36:11.992Z",
+    "updatedAt": "2026-07-10T16:36:11.992Z"
+  }
+}
+```
+
+### Invalid Credentials
+
+`401 Unauthorized`
+
+``` json
+{
+  "message": "Invalid email or password",
+  "error": "Unauthorized",
+  "statusCode": 401
+}
+```
+
+------------------------------------------------------------------------
+
+# Users API
+
+## Available Endpoints
+
+  Method   Endpoint        Description      Auth
+  -------- --------------- ---------------- ----------
+  GET      /v1/users       Get all users    Required
+  GET      /v1/users/:id   Get user by ID   Public
+  PATCH    /v1/users/:id   Update user      Public
+
+## GET /v1/users
+
+Requires:
+
+``` http
+Authorization: Bearer <access_token>
+```
+
+Success: `200 OK`
+
+## GET /v1/users/:id
+
+Success: `200 OK`
+
+Not Found: `404 Not Found`
+
+## PATCH /v1/users/:id
+
+Updates an existing user.
+
+Success: `200 OK`
+
+Not Found: `404 Not Found`
+
+------------------------------------------------------------------------
+
+# Notes
+
+-   Passwords are hashed using bcrypt.
+-   Plain-text passwords are never stored.
+-   Password hashes are never returned by the API.
+-   JWT access tokens expire according to `JWT_EXPIRES_IN`.
+
+------------------------------------------------------------------------
 
 # Current Limitations
 
-Current implementation is intended for development.
+-   Refresh tokens
+-   Logout endpoint
+-   Role-Based Access Control (RBAC)
+-   Roles Guard
+-   Pagination
+-   Filtering
+-   Sorting
+-   Swagger / OpenAPI
 
-Not yet implemented:
-
-* Login authentication
-* JWT access tokens
-* Database-backed refresh tokens
-* Role-based authorization
-* Input sanitization
-* Pagination
-* Filtering
-* Sorting
-* Swagger documentation
-
----
+------------------------------------------------------------------------
 
 # Last Updated
 
-2026-07-11
+2026-07-14

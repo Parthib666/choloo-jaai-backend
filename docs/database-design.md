@@ -108,40 +108,54 @@ cannot exist multiple times.
 
 At the current stage of development, the **users** table has no foreign key relationships.
 
-Relationships will be introduced when implementing:
+Relationships will be introduced as additional modules are implemented, including:
 
-* Events
-* Bookings
-* Tickets
-* Payments
+- Refresh Tokens
+- Events
+- Bookings
+- Tickets
+- Payments
+
+Diagram:
+Current
+
+users
+
+Future
+
+users (1)
+    │
+    ├───────────< refresh_tokens
+    ├───────────< events
+    ├───────────< bookings
+    └───────────< payments
 
 ---
 
-# Planned Authentication Tables
+# Planned Tables
 
 ## refresh_tokens
 
-A database-backed refresh token system will be implemented for authentication security.
-
 Purpose:
 
-* Store active refresh tokens
-* Support token revocation
-* Enable logout from all devices
-* Track user sessions
+- Store active refresh tokens
+- Support refresh token rotation
+- Enable secure logout
+- Enable logout from all devices
+- Track authenticated user sessions
 
 Planned fields:
 
-| Column    | Type      | Constraint     |
-| --------- | --------- | -------------- |
-| id        | UUID      | Primary Key    |
-| userId    | UUID      | Foreign Key    |
-| tokenHash | varchar   | Required       |
-| expiresAt | timestamp | Required       |
+| Column | Type | Constraint |
+|---------|------|------------|
+| id | UUID | Primary Key |
+| userId | UUID | Foreign Key |
+| tokenHash | varchar | Required |
+| expiresAt | timestamp | Required |
+| revokedAt | timestamp | Nullable |
 | createdAt | timestamp | Auto-generated |
-
 ---
 
 # Last Updated
 
-2026-07-11
+2026-07-14

@@ -5,7 +5,10 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards,
+
 } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 import { UpdateUserDto } from './dto/update-user.dto';
 
@@ -20,6 +23,7 @@ export class UsersController {
   ) { }
 
   /* GET */
+  @UseGuards(JwtAuthGuard)
   @Get()
   findAll() {
     return this.usersService.findAll();
