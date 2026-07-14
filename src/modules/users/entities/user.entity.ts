@@ -6,18 +6,9 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-export enum UserRole {
-  CUSTOMER = 'CUSTOMER',
-  CLIENT = 'CLIENT',
-  EVENT_MANAGER = 'EVENT_MANAGER',
-  ADMIN = 'ADMIN',
-}
+import { UserRole } from '../enums/user-role.enum';
 
-export enum UserStatus {
-  ACTIVE = 'ACTIVE',
-  INACTIVE = 'INACTIVE',
-  SUSPENDED = 'SUSPENDED',
-}
+import { UserStatus } from '../enums/user.status.enum';
 
 @Entity('users')
 export class User {
