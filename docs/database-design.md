@@ -16,16 +16,14 @@ ORM:
 
 ### Purpose
 
-Stores all platform users, including:
+Stores all platform users of the Choloo Jaai platform, including:
 
 * Customers
 * Clients
 * Event Managers
 * Administrators
 
----
-
-## Schema
+### Schema
 
 | Column       | Type      | Constraint       |
 | ------------ | --------- | ---------------- |
@@ -42,6 +40,45 @@ Stores all platform users, including:
 
 ---
 
+## events
+
+### Purpose
+
+Stores all events created and managed through the platform.
+
+Supported event categories include:
+
+* Concerts
+* Seminars
+* Conferences
+* Corporate Events
+* Workshops
+* Festivals
+* Other event types
+
+### Schema
+
+| Column           | Type      | Constraint             |
+| ---------------- | --------- | ---------------------- |
+| id               | UUID      | Primary Key            |
+| title            | varchar   | Required               |
+| slug             | varchar   | Unique                 |
+| description      | text      | Required               |
+| category         | enum      | Required               |
+| venue            | varchar   | Required               |
+| address          | varchar   | Required               |
+| city             | varchar   | Required               |
+| eventDate        | timestamp | Required               |
+| audienceCapacity | integer   | Required               |
+| ticketPrice      | decimal   | Required               |
+| bannerImageUrl   | varchar   | Nullable               |
+| status           | enum      | Default DRAFT          |
+| createdById      | UUID      | Foreign Key → users.id |
+| createdAt        | timestamp | Auto-generated         |
+| updatedAt        | timestamp | Auto-generated         |
+
+---
+
 # Column Details
 
 ## passwordHash
@@ -50,9 +87,21 @@ The database stores encrypted password hashes generated using bcrypt.
 
 Rules:
 
-* Plain passwords are never stored.
+* Plain-text passwords are never stored.
 * Password hashes are never exposed through API responses.
-* Password verification is handled by the authentication module.
+* Password verification is handled by the Authentication module.
+
+---
+
+## slug
+
+The `slug` column stores a URL-friendly identifier generated automatically from the event title.
+
+Rules:
+
+* Generated automatically during event creation.
+* Enforced as unique by the database.
+* Duplicate titles receive incremental numeric suffixes (for example, `dhaka-metal-fest-2026-2`).
 
 ---
 
@@ -86,6 +135,61 @@ Available statuses:
 * INACTIVE
 * SUSPENDED
 
+### Description
+
+| Status | Description |
+|--------|-------------|
+| ACTIVE | User account is active and can access the platform. |
+| INACTIVE | User account is temporarily inactive. |
+| SUSPENDED | User account has been suspended and cannot access protected resources. |
+
+---
+
+## EventCategory
+
+Available categories:
+
+* CONCERT
+* SEMINAR
+* CONFERENCE
+* CORPORATE
+* WORKSHOP
+* FESTIVAL
+* OTHER
+
+### Description
+
+| Category   | Description                                           |
+| ---------- | ----------------------------------------------------- |
+| CONCERT    | Concerts, live music performances, and gigs           |
+| SEMINAR    | Educational and professional seminars                 |
+| CONFERENCE | Conferences, summits, and conventions                 |
+| CORPORATE  | Corporate meetings, launches, and business events     |
+| WORKSHOP   | Training sessions, bootcamps, and hands-on workshops  |
+| FESTIVAL   | Cultural, music, food, and community festivals        |
+| OTHER      | Events that do not fit into the predefined categories |
+
+
+---
+
+## EventStatus
+
+Available statuses:
+
+* DRAFT
+* PUBLISHED
+* CANCELLED
+* COMPLETED
+
+### Description
+
+| Status | Description |
+|--------|-------------|
+| DRAFT | Event has been created but is not yet visible to the public. |
+| PUBLISHED | Event is publicly available and can be viewed or booked. |
+| CANCELLED | Event has been cancelled and is no longer active. |
+| COMPLETED | Event has concluded successfully. |
+
 ---
 
 # Constraints
@@ -102,37 +206,65 @@ parthib@test.com
 
 cannot exist multiple times.
 
+## Slug
+
+The **slug** column has a unique constraint.
+
+The application automatically generates a URL-friendly slug from the event title.
+
+Duplicate titles receive incremental suffixes.
+
+Example:
+
+```
+dhaka-metal-fest-2026
+dhaka-metal-fest-2026-2
+dhaka-metal-fest-2026-3
+```
+
 ---
 
 # Current Relationships
 
-At the current stage of development, the **users** table has no foreign key relationships.
+## users → events
 
-Relationships will be introduced as additional modules are implemented, including:
+Relationship:
 
-- Refresh Tokens
-- Events
-- Bookings
-- Tickets
-- Payments
+* One User can create many Events.
+* Each Event belongs to one User.
 
-Diagram:
-Current
+Relationship Type:
 
-users
+One-to-Many
 
-Future
-
+```
 users (1)
     │
-    ├───────────< refresh_tokens
-    ├───────────< events
-    ├───────────< bookings
-    └───────────< payments
+    └────────────< events (*)
+```
+
+Foreign Key:
+
+```
+events.createdById
+      │
+      ▼
+users.id
+```
 
 ---
 
 # Planned Tables
+
+Future planned relationships:
+
+```text
+users (1)
+    │
+    ├───────────< refresh_tokens
+    ├───────────< bookings
+    └───────────< payments
+```
 
 ## refresh_tokens
 
@@ -154,8 +286,29 @@ Planned fields:
 | expiresAt | timestamp | Required |
 | revokedAt | timestamp | Nullable |
 | createdAt | timestamp | Auto-generated |
+
+---
+
+# Entity Relationships
+
+```
+User
+ ├── id
+ ├── firstName
+ ├── ...
+ └──────────────┐
+                │
+                │ One-to-Many
+                ▼
+Event
+ ├── id
+ ├── title
+ ├── slug
+ ├── status
+ └── createdById (FK)
+```
 ---
 
 # Last Updated
 
-2026-07-14
+2026-07-15

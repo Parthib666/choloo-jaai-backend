@@ -4,29 +4,29 @@
 
 Development
 
-``` text
+```text
 http://localhost:3000
 ```
 
 ## API Version
 
-``` text
+```text
 v1
 ```
 
 ## Current API Prefix
 
-``` text
+```text
 http://localhost:3000/v1
 ```
 
 ## Request Headers
 
-``` http
+```http
 Content-Type: application/json
 ```
 
-------------------------------------------------------------------------
+---
 
 # Authentication
 
@@ -34,7 +34,7 @@ The API uses JWT Bearer authentication for protected endpoints.
 
 ## Authentication Flow
 
-``` text
+```text
 Register
    │
    ▼
@@ -58,33 +58,34 @@ Access Protected Endpoints
 
 ## Authorization Header
 
-``` http
+```http
 Authorization: Bearer <access_token>
 ```
 
-Public endpoints:
+## Public Endpoints
 
-  Method   Endpoint
-  -------- -------------------
-  POST     /v1/auth/register
-  POST     /v1/auth/login
+| Method | Endpoint          |
+| ------ | ----------------- |
+| POST   | /v1/auth/register |
+| POST   | /v1/auth/login    |
 
-Protected endpoints:
+## Protected Endpoints
 
-  Method   Endpoint
-  -------- -----------
-  GET      /v1/users
+| Method | Endpoint   | Required Roles       |
+| ------ | ---------- | -------------------- |
+| GET    | /v1/users  | Authenticated        |
+| POST   | /v1/events | ADMIN, EVENT_MANAGER |
 
-------------------------------------------------------------------------
+---
 
 # Authentication API
 
 ## Available Endpoints
 
-  Method   Endpoint            Description
-  -------- ------------------- ------------------------
-  POST     /v1/auth/register   Register a new account
-  POST     /v1/auth/login      Authenticate a user
+| Method | Endpoint          | Description            |
+| ------ | ----------------- | ---------------------- |
+| POST   | /v1/auth/register | Register a new account |
+| POST   | /v1/auth/login    | Authenticate a user    |
 
 ## POST /v1/auth/register
 
@@ -92,7 +93,7 @@ Creates a new user account.
 
 ### Request
 
-``` json
+```json
 {
   "firstName": "Parthib",
   "lastName": "Datta",
@@ -104,9 +105,9 @@ Creates a new user account.
 
 ### Success
 
-`201 Created`
+**201 Created**
 
-``` json
+```json
 {
   "id": "uuid",
   "firstName": "Parthib",
@@ -122,9 +123,9 @@ Creates a new user account.
 
 ### Duplicate Email
 
-`409 Conflict`
+**409 Conflict**
 
-``` json
+```json
 {
   "message": "Email already exists",
   "error": "Conflict",
@@ -138,18 +139,18 @@ Authenticates an existing user.
 
 ### Request
 
-``` json
+```json
 {
-  "email": "parthib@test.com",
+  "email": "parthib1@test.com",
   "password": "MyPassword123!"
 }
 ```
 
 ### Success
 
-`200 OK`
+**200 OK**
 
-``` json
+```json
 {
   "accessToken": "<jwt_access_token>",
   "user": {
@@ -168,9 +169,9 @@ Authenticates an existing user.
 
 ### Invalid Credentials
 
-`401 Unauthorized`
+**401 Unauthorized**
 
-``` json
+```json
 {
   "message": "Invalid email or password",
   "error": "Unauthorized",
@@ -178,66 +179,165 @@ Authenticates an existing user.
 }
 ```
 
-------------------------------------------------------------------------
+---
 
 # Users API
 
 ## Available Endpoints
 
-  Method   Endpoint        Description      Auth
-  -------- --------------- ---------------- ----------
-  GET      /v1/users       Get all users    Required
-  GET      /v1/users/:id   Get user by ID   Public
-  PATCH    /v1/users/:id   Update user      Public
+| Method | Endpoint      | Description    | Authentication |
+| ------ | ------------- | -------------- | -------------- |
+| GET    | /v1/users     | Get all users  | Required       |
+| GET    | /v1/users/:id | Get user by ID | Public         |
+| PATCH  | /v1/users/:id | Update user    | Public         |
 
 ## GET /v1/users
 
 Requires:
 
-``` http
+```http
 Authorization: Bearer <access_token>
 ```
 
-Success: `200 OK`
+Success: **200 OK**
 
 ## GET /v1/users/:id
 
-Success: `200 OK`
+Success: **200 OK**
 
-Not Found: `404 Not Found`
+Not Found: **404 Not Found**
 
 ## PATCH /v1/users/:id
 
 Updates an existing user.
 
-Success: `200 OK`
+Success: **200 OK**
 
-Not Found: `404 Not Found`
+Not Found: **404 Not Found**
 
-------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------------
+
+# Events API
+
+## Available Endpoints
+
+| Method | Endpoint   | Description        | Authentication        |
+| ------ | ---------- | ------------------ | --------------------- |
+| POST   | /v1/events | Create a new event | ADMIN / EVENT_MANAGER |
+
+## POST /v1/events
+
+Creates a new event.
+
+### Authentication
+
+Required
+
+```http
+Authorization: Bearer <access_token>
+```
+
+### Authorization
+
+Allowed roles:
+
+* ADMIN
+* EVENT_MANAGER
+
+### Request
+
+```json
+{
+  "title": "Dhaka Metal Fest 2026",
+  "description": "Bangladesh's biggest metal festival.",
+  "category": "CONCERT",
+  "venue": "Army Stadium",
+  "address": "Dhaka Cantonment",
+  "city": "Dhaka",
+  "eventDate": "2026-12-20T18:00:00.000Z",
+  "audienceCapacity": 10000,
+  "ticketPrice": 500,
+  "bannerImageUrl": "https://example.com/banner.jpg"
+}
+```
+
+### Success
+
+**201 Created**
+
+```json
+{
+  "id": "uuid",
+  "title": "Dhaka Metal Fest 2026",
+  "slug": "dhaka-metal-fest-2026",
+  "description": "Bangladesh's biggest metal festival.",
+  "category": "CONCERT",
+  "venue": "Army Stadium",
+  "address": "Dhaka Cantonment",
+  "city": "Dhaka",
+  "eventDate": "2026-12-20T18:00:00.000Z",
+  "audienceCapacity": 10000,
+  "ticketPrice": 500,
+  "bannerImageUrl": "https://example.com/banner.jpg",
+  "status": "DRAFT",
+  "createdAt": "2026-07-15T05:15:00.000Z",
+  "updatedAt": "2026-07-15T05:15:00.000Z"
+}
+```
+
+### Error Responses
+
+| Status | Description           |
+| ------ | --------------------- |
+| 400    | Validation failed     |
+| 401    | Unauthorized          |
+| 403    | Forbidden             |
+| 404    | User not found        |
+| 500    | Internal server error |
+
+### Business Rules
+
+* Only `ADMIN` and `EVENT_MANAGER` users can create events.
+* Event slugs are generated automatically from the title.
+* Duplicate titles generate unique slugs by appending incremental suffixes (`-2`, `-3`, ...).
+* Newly created events are assigned the `DRAFT` status.
+* The authenticated user is recorded as the event creator (`createdBy`).
+* Request validation is performed before database persistence.
+
+### Testing Status
+
+| Test                      | Result   |
+| ------------------------- | -------- |
+| Unauthorized (401)        | ✅ Passed |
+| RBAC (403)                | ✅ Passed |
+| Successful Creation (201) | ✅ Passed |
+| Duplicate Slug            | ✅ Passed |
+| Validation                | ✅ Passed |
+
+---
 
 # Notes
 
--   Passwords are hashed using bcrypt.
--   Plain-text passwords are never stored.
--   Password hashes are never returned by the API.
--   JWT access tokens expire according to `JWT_EXPIRES_IN`.
+* Passwords are hashed using bcrypt.
+* Plain-text passwords are never stored.
+* Password hashes are never returned by the API.
+* JWT access tokens expire according to `JWT_EXPIRES_IN`.
+* Protected endpoints use JWT authentication.
+* Role-based access control (RBAC) is enforced where applicable.
 
-------------------------------------------------------------------------
+---
 
 # Current Limitations
 
--   Refresh tokens
--   Logout endpoint
--   Role-Based Access Control (RBAC)
--   Roles Guard
--   Pagination
--   Filtering
--   Sorting
--   Swagger / OpenAPI
+* Refresh tokens
+* Logout endpoint
+* Pagination
+* Filtering
+* Sorting
+* Swagger / OpenAPI
 
-------------------------------------------------------------------------
+---
 
 # Last Updated
 
-2026-07-14
+2026-07-15
