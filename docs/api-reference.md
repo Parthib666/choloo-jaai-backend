@@ -73,7 +73,7 @@ Authorization: Bearer <access_token>
 
 | Method | Endpoint   | Required Roles       |
 | ------ | ---------- | -------------------- |
-| GET    | /v1/users  | Authenticated        |
+| GET    | /v1/users  | ADMIN        |
 | POST   | /v1/events | ADMIN, EVENT_MANAGER |
 
 ---
@@ -228,6 +228,78 @@ Not Found: **404 Not Found**
 ## POST /v1/events
 
 Creates a new event.
+
+### Get All Events
+
+```http
+GET /v1/events
+```
+
+Returns a paginated list of events.
+
+Authentication:
+
+- Public endpoint
+- Customers and guests can view published events only.
+- Administrators and event managers can view all events.
+
+#### Query Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| page | number | Page number (default: 1) |
+| limit | number | Number of records per page (default: 10, max: 100) |
+| search | string | Search by event title or description |
+| category | EventCategory | Filter by category |
+| city | string | Filter by city |
+| date | YYYY-MM-DD | Filter by event date |
+| sortBy | eventDate \| createdAt \| title | Sort field |
+| order | asc \| desc | Sort order |
+
+Response:
+
+```json
+{
+  "data": [...],
+  "meta": {
+    "page": 1,
+    "limit": 10,
+    "total": 25,
+    "totalPages": 3
+  }
+}
+```
+
+---
+
+### Get Event by ID
+
+```http
+GET /v1/events/:id
+```
+
+Returns a single event by its UUID.
+
+Responses
+
+- 200 OK
+- 400 Bad Request (invalid UUID)
+- 404 Not Found
+
+---
+
+### Get Event by Slug
+
+```http
+GET /v1/events/slug/:slug
+```
+
+Returns a single event using its SEO-friendly slug.
+
+Responses
+
+- 200 OK
+- 404 Not Found
 
 ### Authentication
 

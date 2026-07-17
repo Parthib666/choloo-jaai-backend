@@ -2,9 +2,9 @@
 
 ## Status
 
-**Partially Implemented**
+**Mostly Implemented**
 
-The backend now supports secure user registration and JWT-based authentication. Additional security features such as refresh tokens and role-based authorization are planned for future development.
+The backend now supports secure user registration, JWT-based authentication, and role-based access control (RBAC). Additional security features such as refresh tokens are planned for future development.
 
 ---
 
@@ -124,20 +124,16 @@ Generated access tokens contain:
 
 ---
 
-# Security Features
+# Implemented Security Features
 
-Implemented:
-
-* Password hashing using bcrypt
-* Password verification using bcrypt.compare()
-* JWT access token generation
-* JWT signature verification
-* Token expiration validation
-* Route protection using JwtAuthGuard
-* JWT Strategy with Passport
-* Environment-based JWT configuration
-* Password hashes never returned through the API
-* UserResponseDto prevents sensitive data exposure
+| Feature                          | Status        |
+| -------------------------------- | ------------- |
+| Role-Based Access Control (RBAC) | ✅ Implemented |
+| Roles Guard                      | ✅ Implemented |
+| @Roles Decorator                 | ✅ Implemented |
+| @CurrentUser Decorator           | ✅ Implemented |
+| JWT Access Token Generation      | ✅ Implemented |
+| Password Hashing (bcrypt)        | ✅ Implemented |
 
 ---
 
@@ -149,8 +145,6 @@ Implemented:
 | Database-backed Refresh Tokens   | ⏳ Planned |
 | Logout Endpoint                  | ⏳ Planned |
 | Refresh Token Rotation           | ⏳ Planned |
-| Role-Based Access Control (RBAC) | ⏳ Planned |
-| Roles Guard                      | ⏳ Planned |
 | Permissions System               | ⏳ Planned |
 
 ---
@@ -183,4 +177,4 @@ REFRESH_TOKEN_EXPIRES_IN=7d
 
 # Last Updated
 
-2026-07-14
+2026-07-15

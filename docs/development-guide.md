@@ -149,7 +149,10 @@ http://localhost:3000/v1
 
 ## In Progress
 
-- Event Management
+## In Progress
+
+- Event Update
+- Event Deletion
 - Refresh Token Authentication
 
 ## Planned
@@ -241,15 +244,25 @@ AuthService
 
 Completed:
 
+Completed:
+
 * Event entity
 * Event repository
 * Create Event endpoint
+* Get All Events endpoint
+* Get Event by ID endpoint
+* Get Event by Slug endpoint
 * CreateEventDto validation
+* GetEventsQueryDto validation
 * EventResponseDto
 * Entity-to-response mapping
 * Automatic slug generation
 * Unique slug handling
 * Event creator association
+* Search
+* Filtering
+* Sorting
+* Pagination
 * JWT authentication
 * Role-Based Access Control (ADMIN, EVENT_MANAGER)
 
@@ -259,10 +272,7 @@ Current event flow:
 Client
    │
    ▼
-JWT Authentication Guard
-   │
-   ▼
-Roles Guard
+Optional JWT Authentication
    │
    ▼
 EventsController
@@ -271,7 +281,7 @@ EventsController
 EventsService
    │
    ▼
-Generate Unique Slug
+Search / Filter / Sort / Pagination
    │
    ▼
 PostgreSQL
