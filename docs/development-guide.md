@@ -151,8 +151,6 @@ http://localhost:3000/v1
 
 ## In Progress
 
-- Event Update
-- Event Deletion
 - Refresh Token Authentication
 
 ## Planned
@@ -244,8 +242,6 @@ AuthService
 
 Completed:
 
-Completed:
-
 * Event entity
 * Event repository
 * Create Event endpoint
@@ -270,6 +266,14 @@ Completed:
 * Role-based update authorization
 * JWT authentication
 * Role-Based Access Control (ADMIN, EVENT_MANAGER)
+* Event deletion endpoint
+* Soft delete implementation
+* DeleteDateColumn integration
+* Admin-only delete authorization
+* Published event deletion protection
+* Cancelled event deletion workflow
+* Deleted event filtering
+* Delete event API validation
 
 Current event flow:
 

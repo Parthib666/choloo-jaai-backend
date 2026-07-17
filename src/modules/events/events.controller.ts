@@ -8,6 +8,8 @@ import {
   Patch,
   Query,
   UseGuards,
+  Delete,
+  ForbiddenException,
 } from '@nestjs/common';
 
 
@@ -76,6 +78,16 @@ export class EventsController {
       id,
       updateEventDto,
     );
+  }
+
+  //Delete event
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  deleteEvent(
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.eventsService.deleteEvent(id);
   }
 
   @Post()

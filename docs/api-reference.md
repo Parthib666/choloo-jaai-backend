@@ -221,9 +221,120 @@ Not Found: **404 Not Found**
 
 ## Available Endpoints
 
-| Method | Endpoint   | Description        | Authentication        |
-| ------ | ---------- | ------------------ | --------------------- |
-| POST   | /v1/events | Create a new event | ADMIN / EVENT_MANAGER |
+| Method | Endpoint          | Description        | Authentication        |
+| ------ | ----------------- | ------------------ | --------------------- |
+| POST   | /v1/events        | Create a new event | ADMIN / EVENT_MANAGER |
+| GET    | /v1/events        | Get all events     | Public                |
+| GET    | /v1/events/:id    | Get event by ID    | Public                |
+| GET    | /v1/events/slug/:slug | Get event by slug | Public             |
+| PATCH  | /v1/events/:id    | Update event       | ADMIN / EVENT_MANAGER |
+| DELETE | /v1/events/:id    | Delete event       | ADMIN                 |
+
+## POST /v1/events
+
+Creates a new event.
+Returns a single event using its SEO-friendly slug.
+
+Responses
+
+- 200 OK
+- 404 Not Found
+
+### Authentication
+
+Required
+
+```http
+Authorization: Bearer <access_token>
+```
+
+### Authorization
+
+Allowed roles:
+
+* ADMIN
+* EVENT_MANAGER
+
+### Request
+
+```json
+{
+  "title": "Dhaka Metal Fest 2026",
+  "description": "Bangladesh's biggest metal festival.",
+  "category": "CONCERT",
+  "venue": "Army Stadium",
+  "address": "Dhaka Cantonment",
+  "city": "Dhaka",
+  "eventDate": "2026-12-20T18:00:00.000Z",
+  "audienceCapacity": 10000,
+  "ticketPrice": 500,
+  "bannerImageUrl": "https://example.com/banner.jpg"
+}
+```
+
+### Success
+
+**201 Created**
+
+```json
+{
+  "id": "uuid",
+  "title": "Dhaka Metal Fest 2026",
+  "slug": "dhaka-metal-fest-2026",
+  "description": "Bangladesh's biggest metal festival.",
+  "category": "CONCERT",
+  "venue": "Army Stadium",
+  "address": "Dhaka Cantonment",
+  "city": "Dhaka",
+  "eventDate": "2026-12-20T18:00:00.000Z",
+  "audienceCapacity": 10000,
+  "ticketPrice": 500,
+  "bannerImageUrl": "https://example.com/banner.jpg",
+  "status": "DRAFT",
+  "createdAt": "2026-07-15T05:15:00.000Z",
+  "updatedAt": "2026-07-15T05:15:00.000Z"
+}
+```
+
+### Error Responses
+
+| Status | Description           |
+| ------ | --------------------- |
+| 400    | Validation failed     |
+| 401    | Unauthorized          |
+| 403    | Forbidden             |
+| 404    | User not found        |
+| 500    | Internal server error |
+
+### Business Rules
+
+* Only `ADMIN` and `EVENT_MANAGER` users can create events.
+* Event slugs are generated automatically from the title.
+* Duplicate titles generate unique slugs by appending incremental suffixes (`-2`, `-3`, ...).
+* Newly created events are assigned the `DRAFT` status.
+* The authenticated user is recorded as the event creator (`createdBy`).
+* Request validation is performed before database persistence.
+
+### Testing Status
+
+| Test                      | Result   |
+| ------------------------- | -------- |
+| Unauthorized (401)        | ✅ Passed |
+| RBAC (403)                | ✅ Passed |
+| Successful Creation (201) | ✅ Passed |
+| Duplicate Slug            | ✅ Passed |
+| Validation                | ✅ Passed |
+
+---
+
+# Notes
+
+* Passwords are hashed using bcrypt.
+* Plain-text passwords are never stored.
+* Password hashes are never returned by the API.
+* JWT access tokens expire according to `JWT_EXPIRES_IN`.
+* Protected endpoints use JWT authentication.
+* Role-based access control (RBAC) is enforced where applicable.
 
 
 ### Get All Events
@@ -377,112 +488,90 @@ Returned when the user role is not ADMIN or EVENT_MANAGER.
 
 Returned when the event does not exist.
 
-
-## POST /v1/events
-
-Creates a new event.
-Returns a single event using its SEO-friendly slug.
-
-Responses
-
-- 200 OK
-- 404 Not Found
-
-### Authentication
-
-Required
+# Delete Event
 
 ```http
-Authorization: Bearer <access_token>
+DELETE /v1/events/:id
 ```
 
-### Authorization
+Soft deletes an existing event.
 
-Allowed roles:
+## Authentication
 
-* ADMIN
-* EVENT_MANAGER
+* Required
+* Allowed roles:
 
-### Request
+  * ADMIN
+
+## Delete Behavior
+
+* Uses soft delete.
+* The event is not permanently removed from the database.
+* Deleted events are hidden from normal event queries.
+* The original record remains available for future auditing or recovery.
+
+## Business Rules
+
+* Only ADMIN users can delete events.
+* DRAFT events can be deleted.
+* CANCELLED events can be deleted.
+* PUBLISHED events cannot be deleted.
+* Published events must be cancelled first using the PATCH endpoint.
+
+## Request Example
+
+```http
+DELETE /v1/events/4fbeb370-b1ea-4a93-a3f9-e6ab2dfa45f0
+```
+
+## Responses
+
+### 200 OK
+
+Event deleted successfully.
+
+Example:
 
 ```json
 {
-  "title": "Dhaka Metal Fest 2026",
-  "description": "Bangladesh's biggest metal festival.",
-  "category": "CONCERT",
-  "venue": "Army Stadium",
-  "address": "Dhaka Cantonment",
-  "city": "Dhaka",
-  "eventDate": "2026-12-20T18:00:00.000Z",
-  "audienceCapacity": 10000,
-  "ticketPrice": 500,
-  "bannerImageUrl": "https://example.com/banner.jpg"
+  "message": "Event deleted successfully."
 }
 ```
 
-### Success
+### 400 Bad Request
 
-**201 Created**
+Returned when:
+
+* Invalid UUID format is provided.
+
+### 401 Unauthorized
+
+Returned when:
+
+* Authentication token is missing.
+
+### 403 Forbidden
+
+Returned when:
+
+* User role is not ADMIN.
+* Attempting to delete a PUBLISHED event.
+
+Example:
 
 ```json
 {
-  "id": "uuid",
-  "title": "Dhaka Metal Fest 2026",
-  "slug": "dhaka-metal-fest-2026",
-  "description": "Bangladesh's biggest metal festival.",
-  "category": "CONCERT",
-  "venue": "Army Stadium",
-  "address": "Dhaka Cantonment",
-  "city": "Dhaka",
-  "eventDate": "2026-12-20T18:00:00.000Z",
-  "audienceCapacity": 10000,
-  "ticketPrice": 500,
-  "bannerImageUrl": "https://example.com/banner.jpg",
-  "status": "DRAFT",
-  "createdAt": "2026-07-15T05:15:00.000Z",
-  "updatedAt": "2026-07-15T05:15:00.000Z"
+  "message": "Published events cannot be deleted. Cancel the event instead.",
+  "error": "Forbidden",
+  "statusCode": 403
 }
 ```
 
-### Error Responses
+### 404 Not Found
 
-| Status | Description           |
-| ------ | --------------------- |
-| 400    | Validation failed     |
-| 401    | Unauthorized          |
-| 403    | Forbidden             |
-| 404    | User not found        |
-| 500    | Internal server error |
+Returned when:
 
-### Business Rules
-
-* Only `ADMIN` and `EVENT_MANAGER` users can create events.
-* Event slugs are generated automatically from the title.
-* Duplicate titles generate unique slugs by appending incremental suffixes (`-2`, `-3`, ...).
-* Newly created events are assigned the `DRAFT` status.
-* The authenticated user is recorded as the event creator (`createdBy`).
-* Request validation is performed before database persistence.
-
-### Testing Status
-
-| Test                      | Result   |
-| ------------------------- | -------- |
-| Unauthorized (401)        | ✅ Passed |
-| RBAC (403)                | ✅ Passed |
-| Successful Creation (201) | ✅ Passed |
-| Duplicate Slug            | ✅ Passed |
-| Validation                | ✅ Passed |
-
----
-
-# Notes
-
-* Passwords are hashed using bcrypt.
-* Plain-text passwords are never stored.
-* Password hashes are never returned by the API.
-* JWT access tokens expire according to `JWT_EXPIRES_IN`.
-* Protected endpoints use JWT authentication.
-* Role-based access control (RBAC) is enforced where applicable.
+* Event does not exist.
 
 ---
 
@@ -490,13 +579,10 @@ Allowed roles:
 
 * Refresh tokens
 * Logout endpoint
-* Pagination
-* Filtering
-* Sorting
 * Swagger / OpenAPI
 
 ---
 
 # Last Updated
 
-2026-07-15
+2026-07-17

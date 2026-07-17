@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 
 import { User } from '../../users/entities/user.entity';
@@ -85,6 +86,13 @@ export class Event {
     nullable: true,
   })
   bannerImageUrl?: string;
+
+  @DeleteDateColumn()
+deletedAt?: Date;
+
+constructor() {
+  console.log('EVENT ENTITY LOADED WITH DELETE DATE COLUMN');
+}
 
   @ManyToOne(
     () => User,

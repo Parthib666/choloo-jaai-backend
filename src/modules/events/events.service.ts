@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -222,4 +222,29 @@ export class EventsService {
 
     return EventMapper.toResponseDto(updatedEvent);
   }
+
+  //delete event
+  async deleteEvent(
+  id: string,
+) {
+  const event = await this.eventRepository.findOne({
+    where: { id },
+  });
+
+  if (!event) {
+    throw new NotFoundException('Event not found.');
+  }
+
+  if (event.status === EventStatus.PUBLISHED) {
+  throw new ForbiddenException(
+    'Published events cannot be deleted. Cancel the event instead.',
+  );
+}
+
+await this.eventRepository.softRemove(event);
+
+return {
+  message: 'Event deleted successfully.',
+};
+}
 }
