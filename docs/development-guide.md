@@ -28,17 +28,17 @@ Every feature follows the project's development workflow:
 
 # Technology Stack
 
-| Layer | Technology |
-|--------|------------|
-| Framework | NestJS |
-| Language | TypeScript |
-| Database | PostgreSQL 16 |
-| ORM | TypeORM |
-| Authentication | JWT + Passport |
-| Cache | Redis |
-| Containerization | Docker |
-| Validation | class-validator |
-| API Testing | Postman |
+| Layer            | Technology      |
+| ---------------- | --------------- |
+| Framework        | NestJS          |
+| Language         | TypeScript      |
+| Database         | PostgreSQL 16   |
+| ORM              | TypeORM         |
+| Authentication   | JWT + Passport  |
+| Cache            | Redis           |
+| Containerization | Docker          |
+| Validation       | class-validator |
+| API Testing      | Postman         |
 
 ---
 
@@ -252,7 +252,9 @@ Completed:
 * Get All Events endpoint
 * Get Event by ID endpoint
 * Get Event by Slug endpoint
+* Update Event endpoint
 * CreateEventDto validation
+* UpdateEventDto validation
 * GetEventsQueryDto validation
 * EventResponseDto
 * Entity-to-response mapping
@@ -263,6 +265,9 @@ Completed:
 * Filtering
 * Sorting
 * Pagination
+* Event update workflow
+* Title-based slug regeneration
+* Role-based update authorization
 * JWT authentication
 * Role-Based Access Control (ADMIN, EVENT_MANAGER)
 

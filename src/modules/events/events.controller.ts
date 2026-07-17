@@ -5,6 +5,7 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Patch,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -25,6 +26,7 @@ import { UserRole } from '../users/enums/user-role.enum';
 import type { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
 
 import { GetEventsQueryDto } from './dto/get-events-query.dto';
+import { UpdateEventDto } from './dto/update-event.dto';
 
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 @Controller('events')
@@ -61,6 +63,19 @@ export class EventsController {
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     return this.eventsService.findOne(id);
+  }
+
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.EVENT_MANAGER)
+  updateEvent(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateEventDto: UpdateEventDto,
+  ) {
+    return this.eventsService.updateEvent(
+      id,
+      updateEventDto,
+    );
   }
 
   @Post()

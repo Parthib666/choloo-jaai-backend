@@ -225,9 +225,6 @@ Not Found: **404 Not Found**
 | ------ | ---------- | ------------------ | --------------------- |
 | POST   | /v1/events | Create a new event | ADMIN / EVENT_MANAGER |
 
-## POST /v1/events
-
-Creates a new event.
 
 ### Get All Events
 
@@ -294,6 +291,96 @@ Responses
 GET /v1/events/slug/:slug
 ```
 
+# Update Event
+
+```http
+PATCH /v1/events/:id
+```
+
+Updates an existing event.
+
+## Authentication
+
+* Required
+* Allowed roles:
+
+  * ADMIN
+  * EVENT_MANAGER
+
+## Editable Fields
+
+| Field            | Type        | Description                              |
+| ---------------- | ----------- | ---------------------------------------- |
+| title            | string      | Updates event title and regenerates slug |
+| description      | string      | Updates event description                |
+| venue            | string      | Updates venue                            |
+| address          | string      | Updates event address                    |
+| city             | string      | Updates event city                       |
+| eventDate        | datetime    | Updates event date and time              |
+| audienceCapacity | number      | Updates audience capacity                |
+| ticketPrice      | number      | Updates ticket price                     |
+| bannerImageUrl   | string      | Updates banner image                     |
+| status           | EventStatus | Updates event status                     |
+
+## Restricted Fields
+
+The following fields cannot be updated:
+
+| Field     | Reason                                 |
+| --------- | -------------------------------------- |
+| id        | Immutable identifier                   |
+| category  | Event classification cannot be changed |
+| createdBy | Original ownership record              |
+| createdAt | Creation timestamp                     |
+
+## Business Rules
+
+* If the title changes, the slug is automatically regenerated.
+* Generated slugs remain unique.
+* Published events can be updated.
+* `updatedAt` is automatically updated by TypeORM.
+
+## Request Example
+
+```json
+{
+  "title": "Updated Event Name",
+  "eventDate": "2027-01-15T18:00:00.000Z",
+  "ticketPrice": 800,
+  "status": "PUBLISHED"
+}
+```
+
+## Responses
+
+### 200 OK
+
+Returns the updated event.
+
+### 400 Bad Request
+
+Returned for:
+
+* Invalid UUID
+* Validation errors
+* Attempting to update restricted fields
+
+### 401 Unauthorized
+
+Returned when authentication is missing.
+
+### 403 Forbidden
+
+Returned when the user role is not ADMIN or EVENT_MANAGER.
+
+### 404 Not Found
+
+Returned when the event does not exist.
+
+
+## POST /v1/events
+
+Creates a new event.
 Returns a single event using its SEO-friendly slug.
 
 Responses

@@ -15,6 +15,7 @@ import { GetEventsQueryDto } from './dto/get-events-query.dto';
 
 import { SelectQueryBuilder } from 'typeorm';
 import { EventStatus } from './enums/event-status.enum';
+import { UpdateEventDto } from './dto/update-event.dto';
 
 @Injectable()
 export class EventsService {
@@ -190,5 +191,35 @@ export class EventsService {
     }
 
     return EventMapper.toResponseDto(event);
+  }
+
+  //update event
+  async updateEvent(
+    id: string,
+    updateEventDto: UpdateEventDto,
+  ): Promise<EventResponseDto> {
+    const event = await this.eventRepository.findOne({
+      where: { id },
+      relations: {
+        createdBy: true,
+      },
+    });
+
+    if (!event) {
+      throw new NotFoundException('Event not found.');
+    }
+    if (
+      updateEventDto.title &&
+      updateEventDto.title !== event.title
+    ) {
+      event.slug = await this.generateUniqueSlug(
+        updateEventDto.title,
+      );
+    }
+    Object.assign(event, updateEventDto);
+
+    const updatedEvent = await this.eventRepository.save(event);
+
+    return EventMapper.toResponseDto(updatedEvent);
   }
 }
