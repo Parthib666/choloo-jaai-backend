@@ -35,7 +35,7 @@ Every feature follows the project's development workflow:
 | Database         | PostgreSQL 16   |
 | ORM              | TypeORM         |
 | Authentication   | JWT + Passport  |
-| Cache            | Redis           |
+| Cache            | Redis (planned) |
 | Containerization | Docker          |
 | Validation       | class-validator |
 | API Testing      | Postman         |
@@ -149,9 +149,32 @@ http://localhost:3000/v1
 
 ## In Progress
 
-## In Progress
+## Completed
 
+### Infrastructure
+
+- Docker
+- PostgreSQL 16
+- Redis 7 (Infrastructure Ready)
+- TypeORM
+- JWT Authentication
 - Refresh Token Authentication
+- Environment-based configuration
+
+### Modules
+
+- Database Module
+- Users Module
+- Authentication Module
+- Events Module
+
+## Planned
+
+- Venue Module
+- Booking Module
+- Ticket Module
+- Payment Module
+- Notification Module
 
 ## Planned
 
@@ -201,10 +224,15 @@ Completed:
 * User login
 * Password hashing (bcrypt)
 * JWT access token generation
+* JWT refresh token generation
+* Refresh token sessions
+* Refresh token hashing (SHA-256)
+* Refresh token rotation
+* Logout
 * Passport JWT Strategy
-* JWT Authentication Guard
-* Role-Based Access Control (RBAC)
-* Roles Guard
+* JwtAuthGuard
+* RolesGuard
+* OptionalJwtAuthGuard
 * Roles decorator
 * CurrentUser decorator
 * Environment-based JWT configuration
@@ -223,18 +251,34 @@ AuthService
    ├── Register
    │      │
    │      ▼
-   │   bcrypt Password Hashing
+   │   Hash Password
    │      │
    │      ▼
    │   UsersService
    │
-   └── Login
+   ├── Login
+   │      │
+   │      ▼
+   │   Generate Access Token
+   │      │
+   │      ▼
+   │   Create Refresh Session
+   │      │
+   │      ▼
+   │   Store Refresh Token Hash
+   │
+   ├── Refresh
+   │      │
+   │      ▼
+   │   Verify Refresh Token
+   │      │
+   │      ▼
+   │   Rotate Refresh Token
+   │
+   └── Logout
           │
           ▼
-   Validate Credentials
-          │
-          ▼
-   Generate JWT Access Token
+     Revoke Session
 ```
 ---
 
@@ -274,6 +318,9 @@ Completed:
 * Cancelled event deletion workflow
 * Deleted event filtering
 * Delete event API validation
+* OptionalJwtAuthGuard
+* Soft delete
+* Restore-ready architecture
 
 Current event flow:
 
@@ -318,7 +365,12 @@ Verified
 - User registration
 - User login
 - Password hashing
-- JWT generation
+- JWT access token generation
+- JWT refresh token generation
+- Refresh token rotation
+- Logout
+- Revoked token rejection
+- Invalid refresh token rejection
 
 ---
 
@@ -340,15 +392,33 @@ Verified
 
 Endpoints
 
+Endpoints
+
 - POST /v1/events
+- GET /v1/events
+- GET /v1/events/:id
+- GET /v1/events/slug/:slug
+- PATCH /v1/events/:id
+- DELETE /v1/events/:id
+
+Verified
 
 Verified
 
 - JWT Authentication
+- Optional Authentication
 - RBAC
 - Event creation
+- Event retrieval
 - DTO validation
 - Slug generation
+- Search
+- Filtering
+- Sorting
+- Pagination
+- Event update
+- Soft delete
+- Published event protection
   
 ---
 
@@ -367,24 +437,32 @@ The backend follows:
 * JWT authentication
 * Role-Based Access Control (RBAC)
 * Automatic slug generation
+* Session-based authentication
+* Refresh token rotation
+* Soft delete architecture
   
 ---
 
 # Roadmap
 
-## Phase 1
+## Phase 1 ✅ Completed
 
 - Refresh Tokens
 - Refresh Token Rotation
 - Logout
 - Token Refresh Endpoint
 
-## Phase 2
+## Phase 2 ✅ Completed
 
 - Event Listing
 - Event Details
 - Event Update
 - Event Deletion
+- Search
+- Filtering
+- Pagination
+- Sorting
+- Soft Delete
 
 ## Phase 3
 
@@ -397,9 +475,6 @@ The backend follows:
 
 - Notifications
 - Swagger Documentation
-- Pagination
-- Filtering
-- Sorting
 - Rate Limiting
 - Logging & Monitoring
 
@@ -407,4 +482,4 @@ The backend follows:
 
 # Last Updated
 
-2026-07-17
+2026-07-21

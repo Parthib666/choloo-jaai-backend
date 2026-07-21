@@ -11,7 +11,11 @@ import { GetUser } from '../../common/decorators/get-user.decorator';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import type { JwtPayload } from './interfaces/jwt-payload.interface';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
+import type { JwtAccessPayload } from './interfaces/jwt-access-payload.interface';
+import { LogoutDto } from './dto/logout.dto';
+
+
 
 @Controller('auth')
 export class AuthController {
@@ -35,11 +39,29 @@ export class AuthController {
         );
     }
 
+    @Post('refresh')
+refresh(
+    @Body() refreshTokenDto: RefreshTokenDto,
+) {
+    return this.authService.refresh(
+        refreshTokenDto,
+    );
+}
+
     @UseGuards(JwtAuthGuard)
     @Get('profile')
     profile(
-        @GetUser() user: JwtPayload,
+        @GetUser() user: JwtAccessPayload,
     ) {
         return user;
     }
+
+    @Post('logout')
+logout(
+    @Body() logoutDto: LogoutDto,
+) {
+    return this.authService.logout(
+        logoutDto,
+    );
+}
 }

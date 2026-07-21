@@ -25,7 +25,7 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
 import { UserRole } from '../users/enums/user-role.enum';
 
-import type { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
+import type { JwtAccessPayload } from '../auth/interfaces/jwt-access-payload.interface';
 
 import { GetEventsQueryDto } from './dto/get-events-query.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
@@ -41,7 +41,7 @@ export class EventsController {
   @UseGuards(OptionalJwtAuthGuard)
   findAll(
     @Query() query: GetEventsQueryDto,
-    @CurrentUser() currentUser: JwtPayload | null,
+    @CurrentUser() currentUser: JwtAccessPayload | null,
   ) {
     const includeUnpublished =
       currentUser?.role === UserRole.ADMIN ||
@@ -95,7 +95,7 @@ export class EventsController {
   @Roles(UserRole.ADMIN, UserRole.EVENT_MANAGER)
   async createEvent(
     @Body() createEventDto: CreateEventDto,
-    @CurrentUser() currentUser: JwtPayload,
+    @CurrentUser() currentUser: JwtAccessPayload,
   ) {
     return this.eventsService.createEvent(
       createEventDto,

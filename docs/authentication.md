@@ -4,7 +4,16 @@
 
 **Mostly Implemented**
 
-The backend now supports secure user registration, JWT-based authentication, and role-based access control (RBAC). Additional security features such as refresh tokens are planned for future development.
+The backend currently supports:
+
+* Secure user registration
+* JWT-based authentication
+* Access and refresh token authentication
+* Refresh token rotation
+* Database-backed refresh token sessions
+* Role-Based Access Control (RBAC)
+
+Additional security features such as password reset, email verification, and advanced session management are planned for future development.
 
 ---
 
@@ -13,14 +22,18 @@ The backend now supports secure user registration, JWT-based authentication, and
 The backend uses:
 
 * JWT (JSON Web Tokens)
+* Separate Access Token and Refresh Token strategy
 * bcrypt for password hashing
 * Passport.js with JWT Strategy
 * NestJS Guards for route protection
 * Environment-based secret management
+* Database-backed refresh token sessions
 
 ---
 
-# Current Authentication Flow
+# Authentication Flow
+
+## User Registration
 
 ```text
 User Registration
@@ -35,10 +48,12 @@ Hash Password (bcrypt)
 Store User in PostgreSQL
         │
         ▼
-Return UserResponseDto
+Return User Response
 ```
 
 ---
+
+## User Login
 
 ```text
 User Login
@@ -53,18 +68,33 @@ Find User by Email
 Compare Password (bcrypt)
         │
         ▼
-Generate JWT Access Token
+Generate Access Token
         │
         ▼
-Return Access Token + User
+Create Refresh Token Session
+        │
+        ▼
+Generate Refresh Token
+        │
+        ▼
+Hash Refresh Token
+        │
+        ▼
+Store Token Hash in Database
+        │
+        ▼
+Return Access Token + Refresh Token
 ```
 
 ---
 
+## Authenticated Request
+
 ```text
-Authenticated Request
+Client Request
         │
-Authorization: Bearer <JWT>
+        ▼
+Authorization: Bearer <access_token>
         │
         ▼
 JwtAuthGuard
@@ -72,12 +102,14 @@ JwtAuthGuard
         ▼
 JwtStrategy
         │
+        ▼
 Verify JWT Signature
         │
+        ▼
 Check Token Expiration
         │
         ▼
-Attach User to Request
+Attach User Payload to Request
         │
         ▼
 Protected Controller
@@ -85,24 +117,170 @@ Protected Controller
 
 ---
 
+# Token Architecture
+
+The system uses two different JWT tokens.
+
+## Access Token
+
+Purpose:
+
+* Authenticate API requests
+* Short-lived authorization token
+
+Payload:
+
+```json
+{
+  "sub": "user-id",
+  "email": "user@example.com",
+  "role": "ADMIN",
+  "type": "access"
+}
+```
+
+Contains:
+
+| Field | Description          |
+| ----- | -------------------- |
+| sub   | User ID              |
+| email | User email           |
+| role  | User role            |
+| type  | Token type           |
+| iat   | Issued timestamp     |
+| exp   | Expiration timestamp |
+
+---
+
+## Refresh Token
+
+Purpose:
+
+* Generate new access tokens
+* Maintain user sessions
+
+Payload:
+
+```json
+{
+  "sub": "user-id",
+  "sessionId": "refresh-session-id",
+  "type": "refresh"
+}
+```
+
+Contains:
+
+| Field     | Description                       |
+| --------- | --------------------------------- |
+| sub       | User ID                           |
+| sessionId | Database refresh token session ID |
+| type      | Token type                        |
+| iat       | Issued timestamp                  |
+| exp       | Expiration timestamp              |
+
+---
+
+# Refresh Token Management
+
+Raw refresh tokens are never stored in the database.
+
+The backend stores a SHA-256 hash:
+
+```text
+Refresh Token
+        │
+        ▼
+SHA-256 Hash
+        │
+        ▼
+Stored in PostgreSQL
+```
+
+Database entity:
+
+```text
+refresh_tokens
+
+id
+tokenHash
+expiresAt
+revokedAt
+createdAt
+userId
+```
+
+Relationship:
+
+```text
+User
+ │
+ │ 1:N
+ │
+RefreshToken
+```
+
+---
+
+# Refresh Token Rotation
+
+When a refresh request is received:
+
+```text
+Client sends Refresh Token
+          │
+          ▼
+Verify Refresh JWT
+          │
+          ▼
+Extract Session ID
+          │
+          ▼
+Hash Provided Token
+          │
+          ▼
+Find Matching Database Session
+          │
+          ▼
+Check Expiration
+          │
+          ▼
+Check Revocation Status
+          │
+          ▼
+Generate New Access Token
+          │
+          ▼
+Generate New Refresh Token
+          │
+          ▼
+Replace Stored Token Hash
+```
+
+Old refresh tokens become invalid after rotation.
+
+---
+
 # Implemented Endpoints
 
-| Method | Endpoint          | Purpose                | Status        |
-| ------ | ----------------- | ---------------------- | ------------- |
-| POST   | /v1/auth/register | Register a new account | ✅ Implemented |
-| POST   | /v1/auth/login    | Authenticate user      | ✅ Implemented |
+| Method | Endpoint          | Purpose                 | Status        |
+| ------ | ----------------- | ----------------------- | ------------- |
+| POST   | /v1/auth/register | Register a new account  | ✅ Implemented |
+| POST   | /v1/auth/login    | Authenticate user       | ✅ Implemented |
+| POST   | /v1/auth/refresh  | Generate new token pair | ✅ Implemented |
+| POST   | /v1/auth/logout   | Revoke refresh session  | ⏳ Pending     |
 
 ---
 
 # Protected Routes
 
-The backend currently supports protecting endpoints using:
+The backend supports protecting endpoints using:
 
 ```ts
 @UseGuards(JwtAuthGuard)
 ```
 
-Requests to protected endpoints require:
+Protected requests require:
 
 ```http
 Authorization: Bearer <access_token>
@@ -110,17 +288,39 @@ Authorization: Bearer <access_token>
 
 ---
 
-# JWT Payload
+# Role-Based Access Control (RBAC)
 
-Generated access tokens contain:
+Authorization is implemented using:
 
-| Field | Description          |
-| ----- | -------------------- |
-| sub   | User ID              |
-| email | User email           |
-| role  | User role            |
-| iat   | Issued at timestamp  |
-| exp   | Expiration timestamp |
+## Roles Decorator
+
+Example:
+
+```ts
+@Roles(
+  UserRole.ADMIN,
+  UserRole.EVENT_MANAGER
+)
+```
+
+## Roles Guard
+
+The guard verifies whether the authenticated user's role matches the required roles.
+
+Example:
+
+Allowed:
+
+```text
+ADMIN
+EVENT_MANAGER
+```
+
+Denied:
+
+```text
+CUSTOMER
+```
 
 ---
 
@@ -133,19 +333,25 @@ Generated access tokens contain:
 | @Roles Decorator                 | ✅ Implemented |
 | @CurrentUser Decorator           | ✅ Implemented |
 | JWT Access Token Generation      | ✅ Implemented |
+| JWT Refresh Token Generation     | ✅ Implemented |
+| Separate Access/Refresh Secrets  | ✅ Implemented |
 | Password Hashing (bcrypt)        | ✅ Implemented |
+| Refresh Token Hash Storage       | ✅ Implemented |
+| Refresh Token Rotation           | ✅ Implemented |
+| Database Refresh Sessions        | ✅ Implemented |
 
 ---
 
 # Planned Features
 
-| Feature                          | Status    |
-| -------------------------------- | --------- |
-| Refresh Tokens                   | ⏳ Planned |
-| Database-backed Refresh Tokens   | ⏳ Planned |
-| Logout Endpoint                  | ⏳ Planned |
-| Refresh Token Rotation           | ⏳ Planned |
-| Permissions System               | ⏳ Planned |
+| Feature                         | Status        |
+| ------------------------------- | ------------- |
+| Logout Endpoint                 | ⏳ In Progress |
+| Password Reset                  | ⏳ Planned     |
+| Email Verification              | ⏳ Planned     |
+| Permission-Based Authorization  | ⏳ Planned     |
+| Multi-device Session Management | ⏳ Planned     |
+| OAuth Authentication            | ⏳ Planned     |
 
 ---
 
@@ -156,9 +362,11 @@ JWT configuration is loaded from environment variables.
 Example:
 
 ```env
-JWT_SECRET=your-secret-key
-JWT_EXPIRES_IN=15m
-REFRESH_TOKEN_EXPIRES_IN=7d
+JWT_ACCESS_SECRET=your-access-secret
+JWT_REFRESH_SECRET=your-refresh-secret
+
+JWT_ACCESS_EXPIRES_IN=15m
+JWT_REFRESH_EXPIRES_IN=30d
 ```
 
 ---
@@ -177,4 +385,4 @@ REFRESH_TOKEN_EXPIRES_IN=7d
 
 # Last Updated
 
-2026-07-15
+2026-07-21

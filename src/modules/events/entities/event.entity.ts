@@ -7,6 +7,7 @@ import {
   ManyToOne,
   JoinColumn,
   DeleteDateColumn,
+  Index,
 } from 'typeorm';
 
 import { User } from '../../users/entities/user.entity';
@@ -35,12 +36,14 @@ export class Event {
   })
   description: string;
 
+  @Index()
   @Column({
     type: 'enum',
     enum: EventCategory,
   })
   category: EventCategory;
 
+  @Index()
   @Column({
     type: 'enum',
     enum: EventStatus,
@@ -59,11 +62,13 @@ export class Event {
   })
   address?: string;
 
+  @Index()
   @Column({
     length: 100,
   })
   city: string;
 
+  @Index()
   @Column({
     type: 'timestamp',
   })
@@ -88,11 +93,11 @@ export class Event {
   bannerImageUrl?: string;
 
   @DeleteDateColumn()
-deletedAt?: Date;
+  deletedAt?: Date;
 
-constructor() {
-  console.log('EVENT ENTITY LOADED WITH DELETE DATE COLUMN');
-}
+  constructor() {
+    console.log('EVENT ENTITY LOADED WITH DELETE DATE COLUMN');
+  }
 
   @ManyToOne(
     () => User,
@@ -108,4 +113,5 @@ constructor() {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
 }

@@ -10,7 +10,7 @@
    * TypeScript
    * TypeORM
    * PostgreSQL
-   * Redis
+   * Redis (planned)
    * Docker
 
    ---
@@ -37,19 +37,28 @@
    Each business module follows a layered architecture.
 
    ```
-   HTTP Request
-         |
-         ▼
+   Client
+      │
+      ▼
+   Global Validation
+      │
+      ▼
+   Authentication Guards
+      │
+      ▼
+   Authorization Guards
+      │
+      ▼
    Controller
-         |
-         ▼
+      │
+      ▼
    Service
-         |
-         ▼
+      │
+      ▼
    Repository
-         |
-         ▼
-   Database
+      │
+      ▼
+   PostgreSQL
    ```
 
    ---
@@ -121,7 +130,42 @@
       ▼
    UserResponseDto
    ```
+# Security Layer
 
+The backend secures protected resources using NestJS Guards and JWT authentication.
+
+Implemented components:
+
+* JwtStrategy
+* JwtAuthGuard
+* OptionalJwtAuthGuard
+* RolesGuard
+* @Roles decorator
+* @CurrentUser decorator
+
+Authentication flow:
+
+Client
+    │
+Authorization: Bearer Token
+    │
+    ▼
+JwtAuthGuard
+    │
+    ▼
+JwtStrategy
+    │
+    ▼
+Validate JWT
+    │
+    ▼
+Attach User to Request
+    │
+    ▼
+RolesGuard (optional)
+    │
+    ▼
+Controller
    ---
 
    # Current Implemented Modules
@@ -175,28 +219,43 @@
    # Authentication Module
 
    The Auth module handles authentication and authorization workflows.
+   ```text
+           auth/
+         ├── dto/
+         ├── entities/
+         ├── guards/
+         ├── interfaces/
+         ├── strategies/
+         ├── auth.controller.ts
+         ├── auth.service.ts
+         └── auth.module.ts
+
+   ```
 
    Implemented features:
 
-   * Separate authentication module
+   Implemented features:
+
    * User registration
-   * Register DTO validation
-   * bcrypt password hashing
-   * Integration with UsersService
-   * Secure user response handling
    * User login
    * JWT access token generation
-   * JWT authentication strategy
-   * JWT authentication guard
-   * Role-Based Access Control (RBAC)
-   * Roles guard
-   * CurrentUser decorator
-   * Roles decorator
+   * JWT refresh token generation
+   * Database-backed refresh token sessions
+   * Refresh token hashing (SHA-256)
+   * Refresh token rotation
+   * Logout
+   * Session revocation
+   * JwtStrategy
+   * JwtAuthGuard
+   * RBAC
+   * RolesGuard
+   * @Roles decorator
+   * @CurrentUser decorator
 
    Current authentication flow:
 
-   ```
-  Client
+```
+ Client
    │
    ▼
 AuthController
@@ -204,32 +263,47 @@ AuthController
    ▼
 AuthService
    │
-   ├── Register
-   │      │
-   │      ▼
-   │   bcrypt Password Hashing
-   │      │
-   │      ▼
-   │   UsersService
-   │      │
-   │      ▼
-   │   PostgreSQL
+   ├── Validate Credentials
    │
-   └── Login
-          │
-          ▼
-   Validate Credentials
-          │
-          ▼
-   Generate JWT Access Token
+   ├── Generate Access Token
+   │
+   ├── Create Refresh Session
+   │
+   ├── Generate Refresh Token
+   │
+   ├── Hash Refresh Token
+   │
+   └── Store Session
 
-   ```
+Refresh
 
-   Planned:
+Client
+   │
+   ▼
+Verify Refresh Token
+   │
+   ▼
+Validate Session
+   │
+   ▼
+Generate New Access Token
+   │
+   ▼
+Rotate Refresh Token
 
-   * Database-backed refresh tokens
-   * Logout
-   * Token refresh endpoint
+Logout
+
+Client
+   │
+   ▼
+Verify Refresh Token
+   │
+   ▼
+Locate Session
+   │
+   ▼
+Revoke Session
+```
 
    ---
 
@@ -239,17 +313,16 @@ AuthService
 
    Implemented features:
 
-   * Event entity
-   * Event repository
-   * Create Event endpoint
-   * CreateEventDto validation
-   * EventResponseDto
-   * Entity-to-response mapping
+   * Create Event
+   * Get All Events
+   * Get Event by ID
+   * Get Event by Slug
+   * Update Event
+   * Soft Delete Event
    * Automatic slug generation
-   * Unique slug handling
-   * Event creator association
-   * JWT authentication
-   * Role-Based Access Control (ADMIN, EVENT_MANAGER)
+   * Duplicate slug handling
+   * Optional authentication for public listings
+   * RBAC for management endpoints
 
    Current event creation flow:
 
@@ -279,15 +352,26 @@ AuthService
    ```
 
    Planned:
-
-   * Get all events
-   * Get event by slug
-   * Update event
-   * Delete event
+   
    * Event publishing workflow
 
    ---
-
+   # Modul Dependancy Diagram
+   ```
+   AppModule
+│
+├── DatabaseModule
+│
+├── UsersModule
+│
+├── AuthModule
+│      │
+│      └──── UsersModule
+│
+└── EventsModule
+       │
+       └──── UsersModule
+       ```
    # API Architecture
 
    The backend uses versioned APIs.
@@ -303,12 +387,19 @@ AuthService
    ```
    POST    /v1/auth/register
    POST    /v1/auth/login
+   POST /v1/auth/refresh
+   POST /v1/auth/logout
+
+   GET    /v1/auth/profile
 
    GET     /v1/users
    GET     /v1/users/:id
+   GET    /v1/events/slug/:slug
    PATCH   /v1/users/:id
-
    POST    /v1/events
+   DELETE /v1/events/:id
+
+
    ```
 
    ---
@@ -328,6 +419,10 @@ AuthService
    * JWT Authentication
    * Role-Based Access Control (RBAC)
    * Automatic Slug Generation
+   * Session-based Authentication
+   * Refresh Token Rotation
+   * Soft Delete
+   * Secure Token Hashing
 
 ---
    # Last Updated

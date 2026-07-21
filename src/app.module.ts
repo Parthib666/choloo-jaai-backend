@@ -5,11 +5,13 @@ import { DatabaseModule } from './database/database.module';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { EventsModule } from './modules/events/events.module';
+import { envValidationSchema } from './config/env.validation';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      validationSchema: envValidationSchema,
     }),
 
     DatabaseModule,
@@ -21,4 +23,4 @@ import { EventsModule } from './modules/events/events.module';
     EventsModule,
   ],
 })
-export class AppModule {}
+export class AppModule { }

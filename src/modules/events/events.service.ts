@@ -94,46 +94,67 @@ export class EventsService {
       category,
       city,
       date,
-      sortBy,
-      order,
+      sortBy = 'eventDate',
+      order = 'asc',
       page = 1,
       limit = 10,
     } = query;
 
-    const queryBuilder = this.eventRepository
-      .createQueryBuilder('event')
-      .leftJoinAndSelect('event.createdBy', 'createdBy');
+    const sortableColumns = {
+      eventDate: 'event.eventDate',
+      createdAt: 'event.createdAt',
+      title: 'event.title',
+    };
 
+    const queryBuilder = this.eventRepository.createQueryBuilder('event');
+
+    // Show only published events to guests/customers.
     if (!includeUnpublished) {
       queryBuilder.andWhere('event.status = :status', {
         status: EventStatus.PUBLISHED,
       });
     }
 
+    // Search by title or description.
     if (search) {
       queryBuilder.andWhere(
-        '(LOWER(event.title) LIKE LOWER(:search) OR LOWER(event.description) LIKE LOWER(:search))',
+        `(
+        LOWER(event.title) LIKE LOWER(:search)
+        OR LOWER(event.description) LIKE LOWER(:search)
+      )`,
         {
           search: `%${search}%`,
         },
       );
     }
 
+    // Filter by category.
     if (category) {
-      queryBuilder.andWhere('event.category = :category', {
-        category,
-      });
+      queryBuilder.andWhere(
+        'event.category = :category',
+        {
+          category,
+        },
+      );
     }
 
+    // Filter by city.
     if (city) {
-      queryBuilder.andWhere('LOWER(event.city) = LOWER(:city)', {
-        city,
-      });
+      queryBuilder.andWhere(
+        'LOWER(event.city) = LOWER(:city)',
+        {
+          city,
+        },
+      );
     }
 
+    // Filter by a specific calendar date.
     if (date) {
       queryBuilder.andWhere(
-        'event.eventDate >= :startDate AND event.eventDate < :endDate',
+        `
+      event.eventDate >= :startDate
+      AND event.eventDate < :endDate
+      `,
         {
           startDate: `${date} 00:00:00`,
           endDate: `${date} 23:59:59`,
@@ -142,11 +163,15 @@ export class EventsService {
     }
 
     queryBuilder
-      .orderBy(`event.${sortBy}`, order.toUpperCase() as 'ASC' | 'DESC')
+      .orderBy(
+        sortableColumns[sortBy],
+        order.toUpperCase() as 'ASC' | 'DESC',
+      )
       .skip((page - 1) * limit)
       .take(limit);
 
-    const [events, total] = await queryBuilder.getManyAndCount();
+    const [events, total] =
+      await queryBuilder.getManyAndCount();
 
     return {
       data: events.map(EventMapper.toResponseDto),
@@ -158,6 +183,7 @@ export class EventsService {
       },
     };
   }
+
 
   async findBySlug(
     slug: string,
@@ -225,26 +251,26 @@ export class EventsService {
 
   //delete event
   async deleteEvent(
-  id: string,
-) {
-  const event = await this.eventRepository.findOne({
-    where: { id },
-  });
+    id: string,
+  ) {
+    const event = await this.eventRepository.findOne({
+      where: { id },
+    });
 
-  if (!event) {
-    throw new NotFoundException('Event not found.');
+    if (!event) {
+      throw new NotFoundException('Event not found.');
+    }
+
+    if (event.status === EventStatus.PUBLISHED) {
+      throw new ForbiddenException(
+        'Published events cannot be deleted. Cancel the event instead.',
+      );
+    }
+
+    await this.eventRepository.softRemove(event);
+
+    return {
+      message: 'Event deleted successfully.',
+    };
   }
-
-  if (event.status === EventStatus.PUBLISHED) {
-  throw new ForbiddenException(
-    'Published events cannot be deleted. Cancel the event instead.',
-  );
-}
-
-await this.eventRepository.softRemove(event);
-
-return {
-  message: 'Event deleted successfully.',
-};
-}
 }

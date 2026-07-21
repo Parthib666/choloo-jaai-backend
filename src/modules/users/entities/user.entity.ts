@@ -4,7 +4,10 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
+
+import { RefreshToken } from '../../auth/entities/refresh-token.entity';
 
 import { UserRole } from '../enums/user-role.enum';
 
@@ -47,6 +50,12 @@ export class User {
     default: UserStatus.ACTIVE,
   })
   status: UserStatus;
+
+  @OneToMany(
+    () => RefreshToken,
+    (refreshToken) => refreshToken.user,
+  )
+  refreshTokens: RefreshToken[];
 
   @CreateDateColumn()
   createdAt: Date;

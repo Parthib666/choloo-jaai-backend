@@ -36,24 +36,31 @@ The API uses JWT Bearer authentication for protected endpoints.
 
 ```text
 Register
-   │
-   ▼
+    │
+    ▼
 POST /v1/auth/register
-   │
-   ▼
+    │
+    ▼
 Create Account
-   │
-   ▼
+    │
+    ▼
 POST /v1/auth/login
-   │
-   ▼
-Receive JWT Access Token
-   │
-   ▼
-Authorization: Bearer <access_token>
-   │
-   ▼
-Access Protected Endpoints
+    │
+    ▼
+Receive
+ ┌───────────────┐
+ │ Access Token  │
+ │ Refresh Token │
+ └───────────────┘
+    │
+    ├──────────────► Protected APIs
+    │
+    ▼
+POST /v1/auth/refresh
+    │
+    ▼
+New Access Token
+New Refresh Token
 ```
 
 ## Authorization Header
@@ -68,6 +75,8 @@ Authorization: Bearer <access_token>
 | ------ | ----------------- |
 | POST   | /v1/auth/register |
 | POST   | /v1/auth/login    |
+| POST   | /v1/auth/refresh  |
+| POST   | /v1/auth/logout   |
 
 ## Protected Endpoints
 
@@ -82,10 +91,13 @@ Authorization: Bearer <access_token>
 
 ## Available Endpoints
 
-| Method | Endpoint          | Description            |
-| ------ | ----------------- | ---------------------- |
-| POST   | /v1/auth/register | Register a new account |
-| POST   | /v1/auth/login    | Authenticate a user    |
+| Method | Endpoint          | Description                       |
+| ------ | ----------------- | ----------------------------------|
+| POST   | /v1/auth/register | Register a new account            |
+| POST   | /v1/auth/login    | Authenticate a user               |
+| POST   | /v1/auth/refresh  | Refresh access token              |
+| POST   | /v1/auth/logout   | Logout and revoke refresh session |
+| GET    | /v1/auth/profile  | Get authenticated user            |
 
 ## POST /v1/auth/register
 
@@ -141,8 +153,11 @@ Authenticates an existing user.
 
 ```json
 {
-  "email": "parthib1@test.com",
-  "password": "MyPassword123!"
+  "accessToken": "...",
+  "refreshToken": "...",
+  "user": {
+    ...
+  }
 }
 ```
 
@@ -176,6 +191,72 @@ Authenticates an existing user.
   "message": "Invalid email or password",
   "error": "Unauthorized",
   "statusCode": 401
+}
+```
+## POST /v1/auth/refresh
+
+### Request
+
+```JSON
+{
+  "refreshToken": "<refresh-token>"
+}
+```
+
+### Sucess
+```json
+{
+  "accessToken": "...",
+  "refreshToken": "..."
+}
+```
+
+### Possible errors:
+
+- Invalid refresh token
+- Refresh token revoked
+- Refresh token expired
+- Refresh token not found
+
+## POST /v1/auth/logout
+
+### Reuest
+```json
+{
+  "refreshToken": "<refresh-token>"
+}
+```
+
+### Success
+
+```json
+{
+  "message": "Logged out successfully."
+}
+```
+
+### Errors:
+
+- Invalid refresh token
+- Refresh token revoked
+
+## GET /v1/auth/profile
+
+## Reuest
+
+```text
+Authorization: Bearer <access_token>
+```
+
+## Response
+```json
+{
+  "sub": "...",
+  "email": "...",
+  "role": "ADMIN",
+  "type": "access",
+  "iat": 1784589695,
+  "exp": 1784590595
 }
 ```
 
@@ -332,7 +413,11 @@ Allowed roles:
 * Passwords are hashed using bcrypt.
 * Plain-text passwords are never stored.
 * Password hashes are never returned by the API.
-* JWT access tokens expire according to `JWT_EXPIRES_IN`.
+* Access tokens are short-lived JWTs.
+* Refresh tokens are stored as SHA-256 hashes in the database.
+* Refresh tokens are rotated on every refresh request.
+* Logout revokes the current refresh token session.
+* Password hashes are never returned by the API.
 * Protected endpoints use JWT authentication.
 * Role-based access control (RBAC) is enforced where applicable.
 
@@ -577,12 +662,10 @@ Returned when:
 
 # Current Limitations
 
-* Refresh tokens
-* Logout endpoint
 * Swagger / OpenAPI
 
 ---
 
 # Last Updated
 
-2026-07-17
+2026-07-21
